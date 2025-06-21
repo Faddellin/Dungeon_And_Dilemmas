@@ -26,6 +26,7 @@ import java.util.UUID;
 public abstract class Answer {
 
     @Id
+    @GeneratedValue
     private UUID id;
 
     @ManyToOne

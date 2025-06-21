@@ -1,4 +1,4 @@
-package org.DAD.application.model;
+package org.DAD.application.model.User;
 
 import lombok.Builder;
 import lombok.Data;

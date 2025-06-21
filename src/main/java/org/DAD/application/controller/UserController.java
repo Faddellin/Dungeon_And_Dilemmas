@@ -2,7 +2,7 @@ package org.DAD.application.controller;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.AllArgsConstructor;
-import org.DAD.application.model.*;
+import org.DAD.application.model.User.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;

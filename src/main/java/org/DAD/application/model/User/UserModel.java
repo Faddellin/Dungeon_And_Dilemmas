@@ -1,4 +1,4 @@
-package org.DAD.application.model;
+package org.DAD.application.model.User;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;

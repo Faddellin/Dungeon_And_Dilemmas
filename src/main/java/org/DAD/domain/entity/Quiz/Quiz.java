@@ -14,19 +14,21 @@ import java.util.UUID;
 public class Quiz {
 
     @Id
+    @GeneratedValue
     private UUID id;
 
     @NotBlank
-    @Min(1)
-    @Max(64)
+    @Size(min = 1, max = 64)
     private String title;
 
     private String description;
 
     @NotNull
+    @Enumerated(EnumType.STRING)
     private QuizDifficulty difficulty;
 
     @NotNull
+    @Enumerated(EnumType.STRING)
     private QuizStatus status;
 
     @OneToMany(mappedBy = "quiz")

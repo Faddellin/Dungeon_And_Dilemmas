@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import lombok.Data;
 import org.DAD.domain.entity.Answer.Answer;
 import org.DAD.domain.entity.Quiz.Quiz;
 
@@ -23,6 +24,7 @@ import java.util.UUID;
 //@JsonSubTypes({
 //        @JsonSubTypes.Type(value = ChoiceQuestion.class, name = "choice"),
 //})
+@Data
 public abstract class Question {
 
     @Id
