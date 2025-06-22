@@ -6,8 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.DAD.domain.entity.Question.QuestionType;
 
-import java.util.UUID;
-
 @Data
 public class QuestionCreateModel {
 

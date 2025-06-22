@@ -11,12 +11,20 @@ spring:
         driver-class-name: org.postgresql.Driver
     jpa:
         hibernate:
-            ddl-auto: update
             naming:
                 physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+            ddl-auto: update
         database: postgresql
         database-platform: org.hibernate.dialect.PostgreSQLDialect
         show-sql: true
         properties:
             hibernate:
                 format_sql: true
+
+jwt:
+    secret:
+        access: dmVyeS1zdHJvbmctc2VjcmV0LWZvci1hY2Nlc3MtdG9rZW4tMDAx
+        refresh: dmVyeS1zdHJvbmctc2VjcmV0LWZvci1yZWZyZXNoLXRva2VuLTAwMg==
+    lifetime:
+        access-minutes: 5
+        refresh-days: 30

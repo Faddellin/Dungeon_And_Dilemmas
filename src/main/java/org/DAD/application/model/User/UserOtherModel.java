@@ -1,6 +1,6 @@
 package org.DAD.application.model.User;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
@@ -8,9 +8,9 @@ import java.util.UUID;
 
 @Data
 @Builder
-public class UserModel {
+@AllArgsConstructor
+public class UserOtherModel {
     public UUID id;
-    public String email;
     public String userName;
     public Integer totalPoints;
     public BestUsersGameModel bestUsersGame;
