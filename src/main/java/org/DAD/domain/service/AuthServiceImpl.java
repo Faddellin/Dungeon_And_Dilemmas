@@ -61,13 +61,16 @@ public class AuthServiceImpl implements AuthService {
 
     @Transactional
     public TokenResponseModel login(UserLoginModel userLoginModel) throws ExceptionWrapper {
-        final User user = userService.findByEmail(userLoginModel.getEmail());
+        Optional<User> userOpt = userService.findByEmail(userLoginModel.getEmail());
+
         ExceptionWrapper badRequestException = new ExceptionWrapper(new BadRequestException());
         badRequestException.addError("Credentials", "Incorrect password or email");
 
-        if (user == null) {
+        if (userOpt.isEmpty()) {
             throw badRequestException;
         }
+
+        User user = userOpt.get();
 
         if (passwordEncoder.matches(userLoginModel.getPassword(), user.getPasswordHash())) {
             final String accessToken = jwtProvider.generateAccessToken(user);

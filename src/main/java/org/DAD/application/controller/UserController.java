@@ -6,7 +6,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.security.auth.message.AuthException;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.DAD.application.handler.ExceptionWrapper;
 import org.DAD.application.model.CommonModels.ResponseModel;
 import org.DAD.application.model.User.*;
 import org.DAD.application.security.JwtAuthentication;
@@ -17,7 +20,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -49,14 +51,16 @@ public class UserController {
                             schema = @Schema(implementation = ResponseModel.class)
                     )})
     })
-    public ResponseEntity<UserModel> getMyProfile() {
+    public ResponseEntity<UserModel> getMyProfile() throws ExceptionWrapper {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof JwtAuthentication) {
-            JwtAuthentication jwtAuth = (JwtAuthentication) authentication;
+        if (authentication instanceof JwtAuthentication jwtAuth) {
             UUID userId = jwtAuth.getId();
             return new ResponseEntity<>(userService.getProfileById(userId), HttpStatus.OK);
-        } else {
-            throw new RuntimeException("Invalid authentication");
+        }
+        else {
+            ExceptionWrapper authEx = new ExceptionWrapper(new AuthException());
+            authEx.addError("Authentication", "Invalid authentication");
+            throw authEx;
         }
     }
 
@@ -120,15 +124,64 @@ public class UserController {
 
     @PutMapping("/profile/edit")
     @SecurityRequirement(name = "JWT")
-    @Operation(summary = "Редактировать профиль", description = "Редактирует профиль текущего пользователя")
-    public void editProfile(@RequestBody UserEditModel model) {
-
+    @Operation(summary = "Edit profile")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Profile was successfully edited",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = UserModel.class)
+                    )}),
+            @ApiResponse(responseCode = "400",
+                    description = "Bad request",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ResponseModel.class)
+                    )}),
+            @ApiResponse(responseCode = "401",
+                    description = "Unauthorized",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ResponseModel.class)
+                    )})
+    })
+    public UserModel editProfile(@Valid @RequestBody UserEditModel model) throws ExceptionWrapper {
+        UUID userId = getCurrentUserId();
+        return userService.editProfile(userId, model);
     }
 
     @PutMapping("/profile/edit-password")
     @SecurityRequirement(name = "JWT")
-    @Operation(summary = "Изменить пароль", description = "Изменяет пароль текущего пользователя")
-    public void editPassword(@RequestBody UserEditPasswordModel model) {
+    @Operation(summary = "Edit password")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Password was successfully edited"),
+            @ApiResponse(responseCode = "400",
+                    description = "Bad request",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ResponseModel.class)
+                    )}),
+            @ApiResponse(responseCode = "401",
+                    description = "Unauthorized",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ResponseModel.class)
+                    )})
+    })
+    public void editPassword(@Valid @RequestBody UserEditPasswordModel model) throws ExceptionWrapper {
+        UUID userId = getCurrentUserId();
+        userService.editPassword(userId, model);
+    }
 
+    private UUID getCurrentUserId() throws ExceptionWrapper {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof JwtAuthentication jwtAuth) {
+            return jwtAuth.getId();
+        } else {
+            ExceptionWrapper authEx = new ExceptionWrapper(new AuthException());
+            authEx.addError("Authentication", "Invalid authentication");
+            throw authEx;
+        }
     }
 }
