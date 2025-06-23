@@ -17,4 +17,8 @@ public class ExceptionWrapper extends Exception {
     public void addError(String reason, String error){
         errors.put(reason, error);
     }
+
+    public boolean hasErrors(){
+        return !errors.isEmpty();
+    }
 }

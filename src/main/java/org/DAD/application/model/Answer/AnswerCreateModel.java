@@ -3,11 +3,9 @@ package org.DAD.application.model.Answer;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import jakarta.persistence.DiscriminatorColumn;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.DAD.domain.entity.Answer.AnswerType;
-import org.DAD.domain.entity.Answer.TextAnswer;
 
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
@@ -15,13 +13,12 @@ import org.DAD.domain.entity.Answer.TextAnswer;
         property = "answerType1"
 )
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = TextAnswerModel.class, name = "text")
+        @JsonSubTypes.Type(value = TextAnswerCreateModel.class, name = "text")
 })
 @Data
-public abstract class AnswerModel {
+public abstract class AnswerCreateModel {
 
     @NotNull
-    @JsonProperty("answerType")
     protected AnswerType answerType;
 
 }

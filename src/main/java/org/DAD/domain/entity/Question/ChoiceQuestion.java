@@ -1,6 +1,7 @@
 package org.DAD.domain.entity.Question;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.DAD.domain.entity.Answer.Answer;
 
@@ -13,8 +14,9 @@ import java.util.UUID;
 public class ChoiceQuestion
         extends Question {
 
-    //@OneToMany(mappedBy = "question")
-    //private List<Answer> answers;
+    @OneToMany(mappedBy = "question")
+    @Size(max = 4)
+    private List<Answer> answers;
 
     private UUID rightAnswerId;
 

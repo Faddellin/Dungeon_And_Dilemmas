@@ -8,6 +8,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.DAD.domain.entity.Question.ChoiceQuestion;
 import org.DAD.domain.entity.Question.Question;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.UUID;
 
@@ -27,15 +29,15 @@ public abstract class Answer {
 
     @Id
     @GeneratedValue
-    private UUID id;
+    protected UUID id;
 
     @ManyToOne
     @JoinColumn(name = "question_id")
-    private Question question;
+    protected Question question;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "answer_type", insertable=false, updatable=false)
     @NotNull
-    private AnswerType answerType;
+    protected AnswerType answerType;
 
 }

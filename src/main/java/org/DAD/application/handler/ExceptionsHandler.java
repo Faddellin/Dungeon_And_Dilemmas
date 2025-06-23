@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import java.nio.file.AccessDeniedException;
 import java.util.*;
 
 @RestControllerAdvice
@@ -33,6 +34,9 @@ public class ExceptionsHandler {
         }
         else if(exceptionClass.equals(AuthException.class)) {
             return new Pair<>(401, HttpStatus.UNAUTHORIZED);
+        }
+        else if(exceptionClass.equals(AccessDeniedException.class)) {
+            return new Pair<>(403, HttpStatus.FORBIDDEN);
         }
 
         return new Pair<>(500, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -113,6 +117,7 @@ public class ExceptionsHandler {
             Exception e
     ) {
         Pair<Integer, HttpStatus> statusCodeAndHttpStatus = getStatusCodeAndHttpStatusByExceptionClass(e.getClass());
+        var a = e.getMessage();
         Dictionary<String, String> errors = new Hashtable<>();
         errors.put("unknownError", "Unknown error, please tell us about it");
         System.out.println(e.getMessage());

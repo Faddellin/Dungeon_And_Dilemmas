@@ -16,4 +16,8 @@ public class QuizFiltersModel {
     @Email
     private String creatorEmail;
 
+    private Integer page;
+
+    private Integer pageSize;
+
 }

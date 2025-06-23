@@ -21,6 +21,4 @@ public class QuestionCreateModel {
     @NotNull
     private QuestionType questionType;
 
-
-
 }

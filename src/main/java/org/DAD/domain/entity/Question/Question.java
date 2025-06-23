@@ -29,25 +29,25 @@ public abstract class Question {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    protected UUID id;
 
     @NotNull @Min(20) @Max(60)
-    private Integer duration;
+    protected Integer duration;
     //In seconds
 
     @NotNull @Min(1) @Max(30)
-    private Integer damage;
+    protected Integer damage;
 
     @NotNull @Min(1) @Max(100)
-    private Integer reward;
+    protected Integer reward;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "question_type", insertable=false, updatable=false)
     @NotNull
-    private QuestionType questionType;
+    protected QuestionType questionType;
 
     @ManyToOne
     @JoinColumn(name = "quiz_id")
-    private Quiz quiz;
+    protected Quiz quiz;
 
 }

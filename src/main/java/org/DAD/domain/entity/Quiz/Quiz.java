@@ -3,6 +3,7 @@ package org.DAD.domain.entity.Quiz;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.DAD.domain.entity.Question.Question;
 import org.DAD.domain.entity.User.User;
 
@@ -11,6 +12,7 @@ import java.util.UUID;
 
 @Data
 @Entity
+@NoArgsConstructor
 public class Quiz {
 
     @Id
