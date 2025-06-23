@@ -1,11 +1,13 @@
 package org.DAD.application.filter;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.DAD.application.security.JwtAuthentication;
@@ -28,25 +30,29 @@ public class JwtFilter extends GenericFilterBean {
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         final String token = getTokenFromRequest((HttpServletRequest) servletRequest);
-        log.info("Processing request. Token: {}", token);
+        HttpServletRequest request = (HttpServletRequest) servletRequest;
 
-        if (token != null) {
-            boolean isValid = jwtProvider.validateAccessToken(token);
-            log.info("Token validation result: {}", isValid);
-
-            if (isValid) {
-                final Claims claims = jwtProvider.getAccessClaims(token);
-                log.info("Token claims: {}", claims);
-
-                final JwtAuthentication authentication = JwtUtils.generate(claims);
-                log.info("Generated Authentication object: {}", authentication);
-
-                authentication.setAuthenticated(true);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                log.info("Authentication set in SecurityContext");
+        try {
+            if (token != null) {
+                if (jwtProvider.validateAccessToken(token)) {
+                    final Claims claims = jwtProvider.getAccessClaims(token);
+                    final JwtAuthentication authentication = JwtUtils.generate(claims);
+                    authentication.setAuthenticated(true);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                } else {
+                    request.setAttribute("invalid", true);
+                }
             }
+            filterChain.doFilter(servletRequest, servletResponse);
+        } catch (ExpiredJwtException e) {
+            log.error("Token expired", e);
+            request.setAttribute("expired", true);
+            filterChain.doFilter(servletRequest, servletResponse);
+        } catch (Exception e) {
+            log.error("Authentication error", e);
+            request.setAttribute("invalid", true);
+            filterChain.doFilter(servletRequest, servletResponse);
         }
-        filterChain.doFilter(servletRequest, servletResponse);
     }
 
     private String getTokenFromRequest(HttpServletRequest request) {
