@@ -12,6 +12,8 @@ import org.DAD.application.model.Answer.AnswerCreateModel;
 import org.DAD.application.model.Answer.AnswerModel;
 import org.DAD.application.model.Answer.TextAnswerModel;
 import org.DAD.application.model.CommonModels.ResponseModel;
+import org.DAD.application.model.Connection.ModelWrapper;
+import org.DAD.application.model.Connection.UserAnswerModel;
 import org.DAD.application.model.Question.QuestionCreateModel;
 import org.DAD.application.model.Quiz.QuizCreateModel;
 import org.DAD.application.model.Quiz.QuizFiltersModel;
@@ -66,6 +68,14 @@ public class QuizController {
     ) throws ExceptionWrapper {
         JwtAuthentication authentication = (JwtAuthentication)SecurityContextHolder.getContext().getAuthentication();
         return _quizService.createQuiz(authentication.getId(),quizCreateModel);
+    }
+    @PostMapping(path = "check")
+    @SecurityRequirement(name = "JWT")
+    public void cfsfdz(
+            @Valid @RequestBody ModelWrapper wrapper
+    ) throws ExceptionWrapper {
+        var a =5;
+        var b =wrapper instanceof UserAnswerModel;
     }
 
     @DeleteMapping(path = "quizzes/{quizId}")
