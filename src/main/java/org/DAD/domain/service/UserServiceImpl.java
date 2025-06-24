@@ -5,10 +5,13 @@ import lombok.AllArgsConstructor;
 import org.DAD.application.handler.ExceptionWrapper;
 import org.DAD.application.model.User.*;
 import org.DAD.application.repository.UserRepository;
+import org.DAD.application.repository.specification.UserSpecification;
 import org.DAD.application.service.UserService;
+import org.DAD.domain.entity.Quiz.Quiz;
 import org.DAD.domain.entity.User.User;
 import org.DAD.domain.entity.User.UserRole;
 import org.apache.coyote.BadRequestException;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -58,17 +61,22 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserListModel getAllUsersExceptAdmins() {
-        List<User> users = userRepository.findByRoleNot(UserRole.Admin);
-        
+    public UserListModel findUsers(String name) {
+        List<User> users = null;
+        Specification<User> spec = (root, query, criteriaBuilder) -> null;
+        spec = spec.and(UserSpecification.addEqualSpec(UserRole.Player, "role"));
+        if (name != null && !name.isBlank()) {
+            spec = spec.and(UserSpecification.addContainsSpec(name, "userName"));
+        }
+        users = userRepository.findAll(spec);
         return new UserListModel(users.stream()
-                .map(user -> UserOtherModel.builder()
-                        .id(user.getId())
-                        .userName(user.getUserName())
-                        .totalPoints(0)
-                        .bestUsersGame(null)
-                        .build())
-                .collect(Collectors.toList()));
+                            .map(user -> UserOtherModel.builder()
+                            .id(user.getId())
+                            .userName(user.getUserName())
+                            .totalPoints(0)
+                            .bestUsersGame(null)
+                            .build())
+                            .collect(Collectors.toList()));
     }
 
     @Override
