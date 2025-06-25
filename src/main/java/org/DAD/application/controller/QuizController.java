@@ -9,26 +9,17 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.DAD.application.handler.ExceptionWrapper;
 import org.DAD.application.model.Answer.AnswerCreateModel;
-import org.DAD.application.model.Answer.AnswerModel;
-import org.DAD.application.model.Answer.TextAnswerModel;
 import org.DAD.application.model.CommonModels.ResponseModel;
-import org.DAD.application.model.Connection.ModelWrapper;
-import org.DAD.application.model.Connection.UserAnswerModel;
 import org.DAD.application.model.Question.QuestionCreateModel;
 import org.DAD.application.model.Quiz.QuizCreateModel;
 import org.DAD.application.model.Quiz.QuizFiltersModel;
 import org.DAD.application.model.Quiz.QuizModel;
 import org.DAD.application.model.Quiz.QuizPagedListModel;
-import org.DAD.application.repository.UserRepository;
 import org.DAD.application.security.JwtAuthentication;
 import org.DAD.application.service.QuizService;
-import org.DAD.domain.entity.Answer.AnswerType;
-import org.DAD.domain.entity.User.User;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import javax.swing.text.html.Option;
-import java.util.Optional;
 import java.util.UUID;
 
 @RestController

@@ -117,8 +117,8 @@ public class UserController {
                             schema = @Schema(implementation = ResponseModel.class)
                     )})
     })
-    public ResponseEntity<UserListModel> getAllUsers() {
-        UserListModel users = userService.getAllUsersExceptAdmins();
+    public ResponseEntity<UserListModel> getAllUsers(@RequestParam(required = false) String name) {
+        UserListModel users = userService.findUsers(name);
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
