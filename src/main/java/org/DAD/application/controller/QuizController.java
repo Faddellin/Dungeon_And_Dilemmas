@@ -69,14 +69,6 @@ public class QuizController {
         JwtAuthentication authentication = (JwtAuthentication)SecurityContextHolder.getContext().getAuthentication();
         return _quizService.createQuiz(authentication.getId(),quizCreateModel);
     }
-    @PostMapping(path = "check")
-    @SecurityRequirement(name = "JWT")
-    public void cfsfdz(
-            @Valid @RequestBody ModelWrapper wrapper
-    ) throws ExceptionWrapper {
-        var a =5;
-        var b =wrapper instanceof UserAnswerModel;
-    }
 
     @DeleteMapping(path = "quizzes/{quizId}")
     @SecurityRequirement(name = "JWT")
@@ -108,6 +100,27 @@ public class QuizController {
     }
 
     @GetMapping(path = "quizzes/{id}")
+    @SecurityRequirement(name = "JWT")
+    @Operation(summary = "Get quiz by id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Quiz retrieved"
+            ),
+            @ApiResponse(responseCode = "400",
+                    description = "Bad request",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ResponseModel.class)
+                    )}
+            ),
+            @ApiResponse(responseCode = "401",
+                    description = "Unauthorized",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ResponseModel.class)
+                    )}
+            )
+    })
     public QuizModel GetQuizById(
             @PathVariable UUID id
     ) throws ExceptionWrapper {
@@ -115,6 +128,27 @@ public class QuizController {
     }
 
     @GetMapping(path = "quizzes")
+    @SecurityRequirement(name = "JWT")
+    @Operation(summary = "Get quizzes by filters")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "QuizPagedListModel retrieved"
+            ),
+            @ApiResponse(responseCode = "400",
+                    description = "Bad request",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ResponseModel.class)
+                    )}
+            ),
+            @ApiResponse(responseCode = "401",
+                    description = "Unauthorized",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ResponseModel.class)
+                    )}
+            )
+    })
     public QuizPagedListModel GetQuizzesByFilters(
             @ModelAttribute QuizFiltersModel quizFiltersModel
     ) throws ExceptionWrapper {

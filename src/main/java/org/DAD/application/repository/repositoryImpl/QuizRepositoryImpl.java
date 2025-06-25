@@ -29,10 +29,18 @@ public class QuizRepositoryImpl
 
         Specification<Quiz> spec = (root, query, criteriaBuilder) -> null;
 
-        spec = spec.and(QuizSpecification.addContainsSpec(quizFiltersModel.getTitle(), "title"));
-        spec = spec.and(QuizSpecification.addContainsSpec(quizFiltersModel.getDescription(), "description"));
-        spec = spec.and(QuizSpecification.addContainsSpec(quizFiltersModel.getDifficulty(), "difficulty"));
-        spec = spec.and(QuizSpecification.addUserContainsSpec(quizFiltersModel.getCreatorEmail(), "email"));
+        if(quizFiltersModel.getTitle() != null) {
+            spec = spec.and(QuizSpecification.addContainsSpec(quizFiltersModel.getTitle(), "title"));
+        }
+        if(quizFiltersModel.getDescription() != null) {
+            spec = spec.and(QuizSpecification.addContainsSpec(quizFiltersModel.getDescription(), "description"));
+        }
+        if(quizFiltersModel.getDifficulty() != null) {
+            spec = spec.and(QuizSpecification.addContainsSpec(quizFiltersModel.getDifficulty(), "difficulty"));
+        }
+        if(quizFiltersModel.getCreatorEmail() != null) {
+            spec = spec.and(QuizSpecification.addUserContainsSpec(quizFiltersModel.getCreatorEmail(), "email"));
+        }
 
         return this.findAll(spec,
                 (quizFiltersModel.getPage() - 1) * quizFiltersModel.getPageSize(),
@@ -42,10 +50,18 @@ public class QuizRepositoryImpl
     public Integer getCountByFilters(QuizFiltersModel quizFiltersModel){
         Specification<Quiz> spec = (root, query, criteriaBuilder) -> null;
 
-        spec = spec.and(QuizSpecification.addContainsSpec(quizFiltersModel.getTitle(), "title"));
-        spec = spec.and(QuizSpecification.addContainsSpec(quizFiltersModel.getDescription(), "description"));
-        spec = spec.and(QuizSpecification.addContainsSpec(quizFiltersModel.getDifficulty(), "difficulty"));
-        spec = spec.and(QuizSpecification.addUserContainsSpec(quizFiltersModel.getCreatorEmail(), "email"));
+        if(quizFiltersModel.getTitle() != null) {
+            spec = spec.and(QuizSpecification.addContainsSpec(quizFiltersModel.getTitle(), "title"));
+        }
+        if(quizFiltersModel.getDescription() != null) {
+            spec = spec.and(QuizSpecification.addContainsSpec(quizFiltersModel.getDescription(), "description"));
+        }
+        if(quizFiltersModel.getDifficulty() != null) {
+            spec = spec.and(QuizSpecification.addContainsSpec(quizFiltersModel.getDifficulty(), "difficulty"));
+        }
+        if(quizFiltersModel.getCreatorEmail() != null) {
+            spec = spec.and(QuizSpecification.addUserContainsSpec(quizFiltersModel.getCreatorEmail(), "email"));
+        }
 
         return Math.toIntExact(this.count(spec));
     }

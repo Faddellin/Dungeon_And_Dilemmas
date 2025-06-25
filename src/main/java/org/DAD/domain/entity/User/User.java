@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import org.DAD.domain.entity.Group.ChatGroup;
 import org.DAD.domain.entity.Quiz.Quiz;
 
 import java.util.Date;
@@ -35,4 +36,7 @@ public class User {
     public String passwordHash;
     @OneToMany(mappedBy = "creator")
     private List<Quiz> userQuizzes;
+    @ManyToOne
+    @JoinColumn(name = "current_group_id")
+    private ChatGroup currentGroup;
 }
