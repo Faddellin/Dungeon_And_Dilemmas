@@ -4,8 +4,10 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import org.DAD.application.model.Answer.AnswerModel;
 import org.DAD.domain.entity.Question.QuestionType;
 
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -26,6 +28,6 @@ public class QuestionModel {
     @NotNull
     private QuestionType questionType;
 
-
+    private List<AnswerModel> answers;
 
 }

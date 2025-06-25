@@ -6,6 +6,5 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class PlayerJoinedMessage extends MessageWrapper {
-    private String joinedPlayerId;
     private String joinedPlayerName;
 }

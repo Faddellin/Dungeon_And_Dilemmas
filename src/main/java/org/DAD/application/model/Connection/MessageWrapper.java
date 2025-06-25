@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.DAD.application.model.Connection.FromBack.*;
+import org.DAD.application.model.Connection.FromFront.AnswerMessage;
 
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
@@ -23,6 +25,5 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public abstract class MessageWrapper {
-    private MessageType type;
     private String playerId;
 }

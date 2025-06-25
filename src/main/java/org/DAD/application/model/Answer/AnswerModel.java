@@ -9,6 +9,8 @@ import lombok.Data;
 import org.DAD.domain.entity.Answer.AnswerType;
 import org.DAD.domain.entity.Answer.TextAnswer;
 
+import java.util.UUID;
+
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
         include = JsonTypeInfo.As.PROPERTY,
@@ -19,6 +21,9 @@ import org.DAD.domain.entity.Answer.TextAnswer;
 })
 @Data
 public abstract class AnswerModel {
+
+    @NotNull
+    protected UUID id;
 
     @NotNull
     @JsonProperty("answerType")
