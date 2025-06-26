@@ -40,4 +40,6 @@ public abstract class Answer {
     @NotNull
     protected AnswerType answerType;
 
+    @NotNull
+    protected Boolean isCorrect;
 }

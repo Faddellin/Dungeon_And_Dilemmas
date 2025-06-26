@@ -3,9 +3,7 @@ package org.DAD.domain.entity.Question;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 import org.DAD.domain.entity.Answer.Answer;
 import org.DAD.domain.entity.Quiz.Quiz;
@@ -50,4 +48,8 @@ public abstract class Question {
     @JoinColumn(name = "quiz_id")
     protected Quiz quiz;
 
+    @NotNull
+    @NotBlank
+    @Size(min = 4, max = 256)
+    private String questionText;
 }

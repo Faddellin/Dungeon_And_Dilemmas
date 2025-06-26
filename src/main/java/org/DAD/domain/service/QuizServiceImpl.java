@@ -267,6 +267,12 @@ public class QuizServiceImpl implements QuizService {
         _answerRepository.save(answer);
         _answerRepository.flush();
 
+        if (question instanceof ChoiceQuestion choiceQuestion && Boolean.TRUE.equals(answerCreateModel.getIsCorrect())) {
+            choiceQuestion.setRightAnswerId(answer.getId());
+            _questionRepository.save(choiceQuestion);
+            _questionRepository.flush();
+        }
+
         return answer.getId();
     }
 

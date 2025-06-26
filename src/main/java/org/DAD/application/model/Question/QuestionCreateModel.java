@@ -1,8 +1,6 @@
 package org.DAD.application.model.Question;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 import org.DAD.domain.entity.Question.QuestionType;
 
@@ -21,4 +19,8 @@ public class QuestionCreateModel {
     @NotNull
     private QuestionType questionType;
 
+    @NotNull
+    @NotBlank
+    @Size(min = 4, max = 256)
+    private String questionText;
 }
