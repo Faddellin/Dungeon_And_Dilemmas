@@ -12,6 +12,7 @@ import jakarta.validation.constraints.Size;
 import org.DAD.application.handler.ExceptionWrapper;
 import org.DAD.application.model.Answer.AnswerCreateModel;
 import org.DAD.application.model.CommonModels.ResponseModel;
+import org.DAD.application.model.Group.GroupModel;
 import org.DAD.application.security.JwtAuthentication;
 import org.DAD.application.service.GroupService;
 import org.DAD.application.service.QuizService;
@@ -53,7 +54,7 @@ public class GroupController {
                     )}
             )
     })
-    public String CreateGroup() throws ExceptionWrapper {
+    public GroupModel CreateGroup() throws ExceptionWrapper {
         JwtAuthentication authentication = (JwtAuthentication)SecurityContextHolder.getContext().getAuthentication();
         return _groupService.createGroup(authentication.getId());
     }
@@ -80,36 +81,9 @@ public class GroupController {
                     )}
             )
     })
-    public void JoinGroup(@PathVariable @Valid @Pattern(regexp = "[0-9a-fA-F]{5}") String code) throws ExceptionWrapper {
+    public GroupModel JoinGroup(@PathVariable @Valid @Pattern(regexp = "[0-9a-fA-F]{5}") String code) throws ExceptionWrapper {
         JwtAuthentication authentication = (JwtAuthentication)SecurityContextHolder.getContext().getAuthentication();
-        _groupService.joinGroup(authentication.getId(), code);
-    }
-
-    @PutMapping(path = "groups/")
-    @SecurityRequirement(name = "JWT")
-    @Operation(summary = "Left group")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200",
-                    description = "Group has been lefted"
-            ),
-            @ApiResponse(responseCode = "400",
-                    description = "Bad request",
-                    content = {@Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = ResponseModel.class)
-                    )}
-            ),
-            @ApiResponse(responseCode = "401",
-                    description = "Unauthorized",
-                    content = {@Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = ResponseModel.class)
-                    )}
-            )
-    })
-    public void LeftGroup() throws ExceptionWrapper {
-        JwtAuthentication authentication = (JwtAuthentication)SecurityContextHolder.getContext().getAuthentication();
-        _groupService.leftGroup(authentication.getId());
+        return _groupService.joinGroup(authentication.getId(), code);
     }
 
 }

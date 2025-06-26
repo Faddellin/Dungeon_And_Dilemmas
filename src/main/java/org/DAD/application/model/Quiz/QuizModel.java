@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.DAD.application.model.User.UserModel;
+import org.DAD.application.model.User.UserShortModel;
 import org.DAD.domain.entity.Quiz.QuizDifficulty;
 import org.DAD.domain.entity.Quiz.QuizStatus;
 
@@ -29,6 +30,6 @@ public class QuizModel {
     private QuizStatus status;
 
     @NotNull
-    private UserModel userModel;
+    private UserShortModel userShortModel;
 
 }

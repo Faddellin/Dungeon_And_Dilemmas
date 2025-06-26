@@ -27,7 +27,7 @@ public class QuizRepositoryImpl
 
     public List<Quiz> findByFilters(QuizFiltersModel quizFiltersModel) {
 
-        Specification<Quiz> spec = (root, query, criteriaBuilder) -> null;
+        Specification<Quiz> spec = (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();;
 
         if(quizFiltersModel.getTitle() != null) {
             spec = spec.and(QuizSpecification.addContainsSpec(quizFiltersModel.getTitle(), "title"));
@@ -48,7 +48,7 @@ public class QuizRepositoryImpl
     }
 
     public Integer getCountByFilters(QuizFiltersModel quizFiltersModel){
-        Specification<Quiz> spec = (root, query, criteriaBuilder) -> null;
+        Specification<Quiz> spec = (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();;
 
         if(quizFiltersModel.getTitle() != null) {
             spec = spec.and(QuizSpecification.addContainsSpec(quizFiltersModel.getTitle(), "title"));

@@ -41,9 +41,8 @@ public class SecurityConfig {
                                        "/v3/api-docs/**",
                                        "/swagger-ui/**",
                                        "/api/v1/quizzes/",
-                                       "/api/v1/quizzes/**",
-                                       "/ws/**").permitAll()
-                        .anyRequest().authenticated()
+                                       "/api/v1/quizzes/**").authenticated()
+                        .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();

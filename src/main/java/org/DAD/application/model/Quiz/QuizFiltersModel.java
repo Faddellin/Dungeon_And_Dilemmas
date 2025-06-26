@@ -1,6 +1,7 @@
 package org.DAD.application.model.Quiz;
 
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Min;
 import lombok.Data;
 import org.DAD.domain.entity.Quiz.QuizDifficulty;
 
@@ -13,11 +14,12 @@ public class QuizFiltersModel {
 
     private QuizDifficulty difficulty;
 
-    @Email
     private String creatorEmail;
 
+    @Min(1)
     private Integer page;
 
+    @Min(1)
     private Integer pageSize;
 
 }
