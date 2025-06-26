@@ -20,7 +20,8 @@ import org.DAD.application.model.Connection.FromFront.AnswerMessage;
         @JsonSubTypes.Type(value = QuestionMessage.class, name = "QuestionMessage"),
         @JsonSubTypes.Type(value = GameStartedMessage.class, name = "GameStartedMessage"),
         @JsonSubTypes.Type(value = GameEndedMessage.class, name = "GameEndedMessage"),
-        @JsonSubTypes.Type(value = ErrorMessage.class, name = "ErrorMessage")
+        @JsonSubTypes.Type(value = ErrorMessage.class, name = "ErrorMessage"),
+        @JsonSubTypes.Type(value = PlayerLeftMessage.class, name = "PlayerLeftMessage")
 })
 @Data
 @NoArgsConstructor

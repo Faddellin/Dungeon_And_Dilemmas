@@ -20,6 +20,10 @@ public class ConnectionController {
     private final GameAnsweringService gameAnsweringService;
     private final SimpMessagingTemplate messagingTemplate;
 
+    public ConnectionController(SimpMessagingTemplate messagingTemplate) {
+        this.messagingTemplate = messagingTemplate;
+    }
+
     @MessageMapping("/game/{groupId}")
     public void handleAnswer(@DestinationVariable String groupId, MessageWrapper message) throws ExceptionWrapper {
         if (message instanceof AnswerMessage answerMessage) {
@@ -28,7 +32,8 @@ public class ConnectionController {
 
         }
         else if (message instanceof GameStartedMessage) {
-            
+
         }
     }
+
 }

@@ -23,6 +23,6 @@ public interface QuizMapper {
                                QuizStatus quizStatus,
                                User user);
 
-    @Mapping(target = "userModel", source = "quiz.creator")
+    @Mapping(target = "userShortModel", source = "quiz.creator")
     QuizModel quizToQuizModel(Quiz quiz);
 }

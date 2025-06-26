@@ -141,7 +141,7 @@ public class QuizController {
             )
     })
     public QuizPagedListModel GetQuizzesByFilters(
-            @ModelAttribute QuizFiltersModel quizFiltersModel
+            @ModelAttribute @Valid QuizFiltersModel quizFiltersModel
     ) throws ExceptionWrapper {
         return _quizService.getQuizzesByFilters(quizFiltersModel);
     }
