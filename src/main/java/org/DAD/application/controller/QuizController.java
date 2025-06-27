@@ -235,7 +235,7 @@ public class QuizController {
         return _quizService.createAnswer(authentication.getId(), questionId, answerCreateModel);
     }
 
-    @PostMapping(path = "quizzes/questions/{questionId}/answers")
+    @PutMapping(path = "quizzes/questions/{questionId}/answers")
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "Set correct answer for question")
     @ApiResponses(value = {

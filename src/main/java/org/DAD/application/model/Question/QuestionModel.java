@@ -26,6 +26,9 @@ public class QuestionModel {
     private Integer reward;
 
     @NotNull
+    private String questionText;
+
+    @NotNull
     private QuestionType questionType;
 
     private List<AnswerModel> answers;
