@@ -267,14 +267,49 @@ public class QuizServiceImpl implements QuizService {
         _answerRepository.save(answer);
         _answerRepository.flush();
 
-        if (question instanceof ChoiceQuestion choiceQuestion && Boolean.TRUE.equals(answerCreateModel.getIsCorrect())) {
-            choiceQuestion.setRightAnswerId(answer.getId());
+        return answer.getId();
+    }
+
+    public void setCorrectAnswer(UUID userId, UUID questionId, UUID answerId) throws ExceptionWrapper{
+        Optional<User> userO = _userRepository.findById(userId);
+        Optional<Question> questionO = _questionRepository.findById(questionId);
+        Optional<Answer> answerO = _answerRepository.findById(questionId);
+
+        {
+            ExceptionWrapper entityNotFoundException = new ExceptionWrapper(new EntityNotFoundException());
+
+            if(userO.isEmpty()){
+                entityNotFoundException.addError("User", "User is not exists");
+            }
+            if(questionO.isEmpty()){
+                entityNotFoundException.addError("Question", "Question is not exists");
+            }
+            if(answerO.isEmpty()){
+                entityNotFoundException.addError("Answer", "Answer is not exists");
+            }
+            if(entityNotFoundException.hasErrors()){
+                throw entityNotFoundException;
+            }
+        }
+
+        User user = userO.get();
+        Question question = questionO.get();
+
+        {
+            if (!question.getQuiz().getCreator().equals(user)) {
+                ExceptionWrapper accessDeniedException = new ExceptionWrapper(new AccessDeniedException(""));
+                accessDeniedException.addError("Access", "You do not have permission to set right answer for this question");
+                throw accessDeniedException;
+            }
+        }
+
+        if (question instanceof ChoiceQuestion choiceQuestion) {
+            choiceQuestion.setRightAnswerId(answerId);
             _questionRepository.save(choiceQuestion);
             _questionRepository.flush();
         }
-
-        return answer.getId();
     }
+
 
     private Answer handleChoiceQuestionAnswerAdding(ChoiceQuestion choiceQuestion, AnswerCreateModel answerCreateModel) throws ExceptionWrapper {
         {

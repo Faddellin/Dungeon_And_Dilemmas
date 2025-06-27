@@ -2,6 +2,8 @@ package org.DAD.application.service;
 
 import org.DAD.application.handler.ExceptionWrapper;
 import org.DAD.application.model.Answer.AnswerCreateModel;
+import org.DAD.application.model.Connection.PlayerIsReadyMessage;
+import org.DAD.application.model.Connection.PlayerLeftMessage;
 import org.DAD.application.model.Group.GroupModel;
 import org.DAD.application.model.Question.QuestionCreateModel;
 import org.DAD.application.model.Quiz.QuizCreateModel;
@@ -16,5 +18,7 @@ public interface GroupService {
 
     GroupModel joinGroup(UUID userId, String code) throws ExceptionWrapper;
 
-    void leftGroup(UUID userId) throws ExceptionWrapper;
+    void setPlayerIsReady(PlayerIsReadyMessage playerIsReadyMessage)throws ExceptionWrapper;
+
+    void leftGroup(PlayerLeftMessage playerLeftMessage) throws ExceptionWrapper;
 }

@@ -20,6 +20,4 @@ public abstract class AnswerCreateModel {
 
     @NotNull
     protected AnswerType answerType;
-    @NotNull
-    protected Boolean isCorrect;
 }

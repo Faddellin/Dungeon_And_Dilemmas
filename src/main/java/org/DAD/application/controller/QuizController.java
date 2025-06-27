@@ -235,6 +235,36 @@ public class QuizController {
         return _quizService.createAnswer(authentication.getId(), questionId, answerCreateModel);
     }
 
+    @PostMapping(path = "quizzes/questions/{questionId}/answers")
+    @SecurityRequirement(name = "JWT")
+    @Operation(summary = "Set correct answer for question")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Correct answer has been set"
+            ),
+            @ApiResponse(responseCode = "400",
+                    description = "Bad request",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ResponseModel.class)
+                    )}
+            ),
+            @ApiResponse(responseCode = "401",
+                    description = "Unauthorized",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ResponseModel.class)
+                    )}
+            )
+    })
+    public void SetCorrectAnswer(
+            @PathVariable UUID questionId,
+            @PathVariable UUID answerId
+    ) throws ExceptionWrapper {
+        JwtAuthentication authentication = (JwtAuthentication)SecurityContextHolder.getContext().getAuthentication();
+        _quizService.setCorrectAnswer(authentication.getId(), questionId, answerId);
+    }
+
     @DeleteMapping(path = "quizzes/questions/answers/{answerId}")
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "Delete answer")

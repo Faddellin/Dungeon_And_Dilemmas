@@ -26,6 +26,7 @@ public interface QuizService {
     void deleteQuestion(UUID userId, UUID questionId) throws ExceptionWrapper;
 
     UUID createAnswer(UUID userId, UUID questionId, AnswerCreateModel answerCreateModel) throws ExceptionWrapper;
+    void setCorrectAnswer(UUID userId, UUID questionId, UUID answerId) throws ExceptionWrapper;
 
     void deleteAnswer(UUID userId, UUID answerId) throws ExceptionWrapper;
 }

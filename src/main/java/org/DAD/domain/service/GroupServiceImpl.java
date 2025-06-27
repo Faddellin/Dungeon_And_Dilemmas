@@ -3,6 +3,8 @@ package org.DAD.domain.service;
 import jakarta.persistence.EntityNotFoundException;
 import org.DAD.application.handler.ExceptionWrapper;
 import org.DAD.application.model.Connection.FromBack.PlayerJoinedMessage;
+import org.DAD.application.model.Connection.PlayerIsReadyMessage;
+import org.DAD.application.model.Connection.PlayerLeftMessage;
 import org.DAD.application.model.Group.GroupModel;
 import org.DAD.application.repository.*;
 import org.DAD.application.service.ConnectionService;
@@ -14,9 +16,7 @@ import org.DAD.domain.mapper.GroupMapper;
 import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class GroupServiceImpl implements GroupService {
@@ -58,6 +58,7 @@ public class GroupServiceImpl implements GroupService {
 
         ChatGroup group = new ChatGroup();
         group.setCode(groupCode);
+        group.setUsersReady(Map.of(user.getId(), false));
         _groupRepository.save(group);
         _groupRepository.flush();
 
@@ -94,61 +95,67 @@ public class GroupServiceImpl implements GroupService {
             badRequestException.addError("User", "The user is already in the group");
             throw badRequestException;
         }
-
+        group.getUsersReady().put(user.getId(), false);
         user.setCurrentGroup(group);
         _userRepository.flush();
+        _groupRepository.flush();
 
         _connectionService.sendMessageToGroup(group.getId(),
                 PlayerJoinedMessage
                         .builder()
                         .joinedPlayerName(user.getUserName())
                         .joinedPlayerId(user.getId())
+                        .playerIsReady(false)
                         .build());
 
         return GroupMapper.INSTANCE.groupToGroupModel(group);
     }
 
-    public GroupModel setPlayerIsReady(UUID userId, String code)throws ExceptionWrapper {
-        Optional<User> userO = _userRepository.findById(userId);
-        Optional<ChatGroup> groupO = _groupRepository.findByCode(code);
+    public void setPlayerIsReady(PlayerIsReadyMessage playerIsReadyMessage)throws ExceptionWrapper {
+        Optional<User> userO = _userRepository.findById(UUID.fromString(playerIsReadyMessage.getPlayerId()));
 
-        {
+        if(userO.isEmpty()){
             ExceptionWrapper entityNotFoundException = new ExceptionWrapper(new EntityNotFoundException());
-            if(userO.isEmpty()){
-                entityNotFoundException.addError("User", "User is not exists");
-            }
-            if(groupO.isEmpty()){
-                entityNotFoundException.addError("Group", "Group is not exists");
-            }
-            if(entityNotFoundException.hasErrors()){
-                throw entityNotFoundException;
-            }
+            entityNotFoundException.addError("User", "User is not exists");
+            throw entityNotFoundException;
         }
 
         User user = userO.get();
-        ChatGroup group = groupO.get();
+        ChatGroup group = user.getCurrentGroup();
 
-        if(user.getCurrentGroup() != null){
-            ExceptionWrapper badRequestException = new ExceptionWrapper(new BadRequestException());
-            badRequestException.addError("User", "The user is already in the group");
-            throw badRequestException;
+        if(group == null){
+            ExceptionWrapper entityNotFoundException = new ExceptionWrapper(new EntityNotFoundException());
+            entityNotFoundException.addError("User", "User is not in group");
+            throw entityNotFoundException;
         }
-
-        user.setCurrentGroup(group);
+        Map<UUID, Boolean> readyMap = new HashMap<>(group.getUsersReady());
+        readyMap.put(user.getId(), playerIsReadyMessage.getIsReady());
+        group.setUsersReady(readyMap);
         _userRepository.flush();
 
         _connectionService.sendMessageToGroup(group.getId(),
-                PlayerJoinedMessage
+                PlayerIsReadyMessage
                         .builder()
-                        .joinedPlayerName(user.getUserName())
-                        .joinedPlayerId(user.getId())
+                        .readyPlayerId(user.getId())
+                        .isReady(playerIsReadyMessage.getIsReady())
                         .build());
 
-        return GroupMapper.INSTANCE.groupToGroupModel(group);
+        Boolean needToStartGame = true;
+        for(var a : readyMap.values()){
+            if(!a){
+                needToStartGame = false;
+                return;
+            }
+        }
+        if(needToStartGame){
+            //TO-DO
+            //Добавить запуск таймера, который также отправит на фронт модель о том, что игра началась
+        }
+
     }
 
-    public void leftGroup(UUID userId) throws ExceptionWrapper{
-        Optional<User> userO = _userRepository.findById(userId);
+    public void leftGroup(PlayerLeftMessage playerLeftMessage) throws ExceptionWrapper{
+        Optional<User> userO = _userRepository.findById(UUID.fromString(playerLeftMessage.getPlayerId()));
 
         if(userO.isEmpty()){
             ExceptionWrapper entityNotFoundException = new ExceptionWrapper(new EntityNotFoundException());
@@ -161,12 +168,25 @@ public class GroupServiceImpl implements GroupService {
 
         user.setCurrentGroup(null);
 
+        Map<UUID, Boolean> readyMap = new HashMap<>(group.getUsersReady());
+        readyMap.remove(user.getId());
+        group.setUsersReady(readyMap);
+        Map<UUID, UUID> answersMap = new HashMap<>(group.getUsersAnswers());
+        readyMap.remove(user.getId());
+        group.setUsersAnswers(answersMap);
+
         if (group.getMembers().size() == 1) {
             _groupRepository.delete(group);
         }
 
         _groupRepository.flush();
         _userRepository.flush();
+
+        _connectionService.sendMessageToGroup(group.getId(),
+                PlayerLeftMessage
+                        .builder()
+                        .leftPlayerId(user.getId())
+                        .build());
     }
 
 }

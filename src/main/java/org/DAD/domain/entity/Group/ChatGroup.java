@@ -40,4 +40,7 @@ public class ChatGroup {
     @JdbcTypeCode(SqlTypes.JSON)
     private Map<UUID, UUID> usersAnswers;
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    private Map<UUID, Boolean> usersReady;
+
 }

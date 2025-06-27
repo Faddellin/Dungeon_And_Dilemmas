@@ -12,6 +12,7 @@ import jakarta.validation.constraints.Size;
 import org.DAD.application.handler.ExceptionWrapper;
 import org.DAD.application.model.Answer.AnswerCreateModel;
 import org.DAD.application.model.CommonModels.ResponseModel;
+import org.DAD.application.model.Connection.PlayerIsReadyMessage;
 import org.DAD.application.model.Group.GroupModel;
 import org.DAD.application.security.JwtAuthentication;
 import org.DAD.application.service.GroupService;
@@ -57,6 +58,16 @@ public class GroupController {
     public GroupModel CreateGroup() throws ExceptionWrapper {
         JwtAuthentication authentication = (JwtAuthentication)SecurityContextHolder.getContext().getAuthentication();
         return _groupService.createGroup(authentication.getId());
+    }
+
+    @GetMapping(path = "groups/test")
+    public void test() throws ExceptionWrapper {
+        _groupService.createGroup(UUID.fromString("89ce0044-8b6a-4126-b414-61bce247f9dd"));
+        PlayerIsReadyMessage pirm = new PlayerIsReadyMessage();
+        pirm.setPlayerId("89ce0044-8b6a-4126-b414-61bce247f9dd");
+        pirm.setIsReady(true);
+        _groupService.setPlayerIsReady(pirm);
+
     }
 
     @GetMapping(path = "groups/{code}")

@@ -15,4 +15,5 @@ import java.util.UUID;
 public class PlayerJoinedMessage extends MessageWrapper {
     private UUID joinedPlayerId;
     private String joinedPlayerName;
+    private Boolean playerIsReady;
 }
