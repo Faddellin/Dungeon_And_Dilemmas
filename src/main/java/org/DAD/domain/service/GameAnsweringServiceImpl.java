@@ -45,7 +45,7 @@ public class GameAnsweringServiceImpl implements GameAnsweringService {
     }
 
     @Override
-    public String getCorrectAnswer(UUID questionId) throws ExceptionWrapper {
+    public TextAnswer getCorrectAnswer(UUID questionId) throws ExceptionWrapper {
         Optional<ChoiceQuestion> choiceQuestionOpt = choiceQuestionRepository.findById(questionId);
         if (choiceQuestionOpt.isEmpty()) {
             ExceptionWrapper badRequestEx = new ExceptionWrapper(new BadRequestException());
@@ -68,7 +68,7 @@ public class GameAnsweringServiceImpl implements GameAnsweringService {
             throw serverError;
         }
 
-        return textAnswerOpt.get().getText();
+        return textAnswerOpt.get();
     }
 
     @Override
@@ -117,14 +117,15 @@ public class GameAnsweringServiceImpl implements GameAnsweringService {
         }
 
         Map<UUID, UUID> usersAnswers = group.getUsersAnswers();
-        String correctAnswer = getCorrectAnswer(currentQuestion.getId());
+        TextAnswer correctAnswer = getCorrectAnswer(currentQuestion.getId());
         
         for (User user : group.getMembers()) {
             AnswerResultMessage answerResultMessage = new AnswerResultMessage();
             answerResultMessage.setPlayerId(user.getId().toString());
-            answerResultMessage.setCorrectAnswer(correctAnswer);
+            answerResultMessage.setCorrectAnswer(correctAnswer.getId());
+            answerResultMessage.setPlayerAnswer(usersAnswers.get(user.getId()));
             
-            UUID userAnswerId = usersAnswers != null ? usersAnswers.get(user.getId()) : null;
+            UUID userAnswerId = usersAnswers.get(user.getId());
             if (userAnswerId != null) {
                 answerResultMessage.setCorrect(isAnswerCorrect(currentQuestion.getId(), userAnswerId));
             } 

@@ -11,10 +11,13 @@ import org.DAD.application.service.ConnectionService;
 import org.DAD.application.service.GroupService;
 import org.DAD.application.util.CodeGenerator;
 import org.DAD.domain.entity.Group.ChatGroup;
+import org.DAD.domain.entity.Quiz.Quiz;
 import org.DAD.domain.entity.User.User;
 import org.DAD.domain.mapper.GroupMapper;
 import org.apache.coyote.BadRequestException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -23,26 +26,30 @@ public class GroupServiceImpl implements GroupService {
 
     private final GroupRepository _groupRepository;
     private final UserRepository _userRepository;
+    private final QuizRepository _quizRepository;
     private final CodeGenerator _codeGenerator;
     private final ConnectionService _connectionService;
 
     public GroupServiceImpl(
             GroupRepository groupRepository,
             UserRepository userRepository,
+            QuizRepository quizRepository,
             CodeGenerator codeGenerator,
             ConnectionService connectionService) {
         _groupRepository = groupRepository;
         _userRepository = userRepository;
+        _quizRepository = quizRepository;
         _codeGenerator = codeGenerator;
         _connectionService = connectionService;
     }
 
-    public GroupModel createGroup(UUID userId)throws ExceptionWrapper {
+    @Transactional
+    public GroupModel createGroup(UUID userId) throws ExceptionWrapper {
         Optional<User> userO = _userRepository.findById(userId);
 
         if(userO.isEmpty()){
             ExceptionWrapper entityNotFoundException = new ExceptionWrapper(new EntityNotFoundException());
-            entityNotFoundException.addError("User", "User is not exists");
+            entityNotFoundException.addError("User", "User doesn't exist");
             throw entityNotFoundException;
         }
 
@@ -59,17 +66,19 @@ public class GroupServiceImpl implements GroupService {
         ChatGroup group = new ChatGroup();
         group.setCode(groupCode);
         group.setUsersReady(Map.of(user.getId(), false));
+        group.setOwnerId(user.getId());
+        group.setMembers(List.of(user));
         _groupRepository.save(group);
         _groupRepository.flush();
 
         user.setCurrentGroup(group);
+        _userRepository.save(user);
         _userRepository.flush();
-
-        group.setMembers(List.of(user));
 
         return GroupMapper.INSTANCE.groupToGroupModel(group);
     }
 
+    @Transactional
     public GroupModel joinGroup(UUID userId, String code)throws ExceptionWrapper {
         Optional<User> userO = _userRepository.findById(userId);
         Optional<ChatGroup> groupO = _groupRepository.findByCode(code);
@@ -77,10 +86,10 @@ public class GroupServiceImpl implements GroupService {
         {
             ExceptionWrapper entityNotFoundException = new ExceptionWrapper(new EntityNotFoundException());
             if(userO.isEmpty()){
-                entityNotFoundException.addError("User", "User is not exists");
+                entityNotFoundException.addError("User", "User doesn't exist");
             }
             if(groupO.isEmpty()){
-                entityNotFoundException.addError("Group", "Group is not exists");
+                entityNotFoundException.addError("Group", "Group doesn't exist");
             }
             if(entityNotFoundException.hasErrors()){
                 throw entityNotFoundException;
@@ -97,8 +106,8 @@ public class GroupServiceImpl implements GroupService {
         }
         group.getUsersReady().put(user.getId(), false);
         user.setCurrentGroup(group);
-        _userRepository.flush();
-        _groupRepository.flush();
+        _userRepository.save(user);
+        _groupRepository.save(group);
 
         _connectionService.sendMessageToGroup(group.getId(),
                 PlayerJoinedMessage
@@ -111,12 +120,13 @@ public class GroupServiceImpl implements GroupService {
         return GroupMapper.INSTANCE.groupToGroupModel(group);
     }
 
+    @Transactional
     public void setPlayerIsReady(PlayerIsReadyMessage playerIsReadyMessage)throws ExceptionWrapper {
         Optional<User> userO = _userRepository.findById(UUID.fromString(playerIsReadyMessage.getPlayerId()));
 
         if(userO.isEmpty()){
             ExceptionWrapper entityNotFoundException = new ExceptionWrapper(new EntityNotFoundException());
-            entityNotFoundException.addError("User", "User is not exists");
+            entityNotFoundException.addError("User", "User doesn't exist");
             throw entityNotFoundException;
         }
 
@@ -154,12 +164,13 @@ public class GroupServiceImpl implements GroupService {
 
     }
 
+    @Transactional
     public void leftGroup(PlayerLeftMessage playerLeftMessage) throws ExceptionWrapper{
         Optional<User> userO = _userRepository.findById(UUID.fromString(playerLeftMessage.getPlayerId()));
 
         if(userO.isEmpty()){
             ExceptionWrapper entityNotFoundException = new ExceptionWrapper(new EntityNotFoundException());
-            entityNotFoundException.addError("User", "User is not exists");
+            entityNotFoundException.addError("User", "User doesn't exist");
             throw entityNotFoundException;
         }
 
@@ -187,6 +198,45 @@ public class GroupServiceImpl implements GroupService {
                         .builder()
                         .leftPlayerId(user.getId())
                         .build());
+    }
+
+    @Override
+    @Transactional
+    public GroupModel selectQuiz(UUID userId, UUID quizId) throws ExceptionWrapper {
+        Optional<User> userO = _userRepository.findById(userId);
+
+        if(userO.isEmpty()) {
+            ExceptionWrapper entityNotFoundException = new ExceptionWrapper(new EntityNotFoundException());
+            entityNotFoundException.addError("User", "User is not exists");
+            throw entityNotFoundException;
+        }
+
+        User user = userO.get();
+        if(user.getCurrentGroup() == null) {
+            ExceptionWrapper badRequestException = new ExceptionWrapper(new BadRequestException());
+            badRequestException.addError("User", "User is not in a group");
+        }
+
+        ChatGroup group = user.getCurrentGroup();
+        if (!group.getOwnerId().equals(user.getId())) {
+            ExceptionWrapper accessDeniedException = new ExceptionWrapper(new AccessDeniedException(""));
+            accessDeniedException.addError("User", "User is not the owner of the group");
+            throw accessDeniedException;
+        }
+
+        Optional<Quiz> quizO = _quizRepository.findById(quizId);
+        if(quizO.isEmpty()) {
+            ExceptionWrapper entityNotFoundException = new ExceptionWrapper(new EntityNotFoundException());
+            entityNotFoundException.addError("Quiz", "Quiz doesn't exist");
+            throw entityNotFoundException;
+        }
+
+        Quiz quiz = quizO.get();
+
+        group.setQuiz(quiz);
+        _groupRepository.flush();
+
+        return GroupMapper.INSTANCE.groupToGroupModel(group);
     }
 
 }

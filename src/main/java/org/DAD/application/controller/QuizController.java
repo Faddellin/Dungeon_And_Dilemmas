@@ -118,6 +118,42 @@ public class QuizController {
         return _quizService.getQuizById(id);
     }
 
+    @GetMapping(path = "quizzes/{quizId}/detail")
+    @SecurityRequirement(name = "JWT")
+    @Operation(summary = "Get detailed quiz by id (owner only)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Quiz detailed information retrieved"
+            ),
+            @ApiResponse(responseCode = "400",
+                    description = "Bad request",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ResponseModel.class)
+                    )}
+            ),
+            @ApiResponse(responseCode = "401",
+                    description = "Unauthorized",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ResponseModel.class)
+                    )}
+            ),
+            @ApiResponse(responseCode = "403",
+                    description = "Forbidden - not quiz owner",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ResponseModel.class)
+                    )}
+            )
+    })
+    public QuizDetailModel GetQuizDetailById(
+            @PathVariable UUID quizId
+    ) throws ExceptionWrapper {
+        JwtAuthentication authentication = (JwtAuthentication)SecurityContextHolder.getContext().getAuthentication();
+        return _quizService.getQuizDetailById(authentication.getId(), quizId);
+    }
+
     @GetMapping(path = "quizzes")
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "Get quizzes by filters")
@@ -235,7 +271,7 @@ public class QuizController {
         return _quizService.createAnswer(authentication.getId(), questionId, answerCreateModel);
     }
 
-    @PutMapping(path = "quizzes/questions/{questionId}/answers")
+    @PostMapping(path = "quizzes/questions/{questionId}/answers")
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "Set correct answer for question")
     @ApiResponses(value = {

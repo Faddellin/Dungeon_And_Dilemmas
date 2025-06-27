@@ -5,9 +5,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.DAD.domain.entity.Question.Question;
+import org.DAD.domain.entity.Quiz.Quiz;
 import org.DAD.domain.entity.User.User;
 import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.Type;
 import org.hibernate.type.SqlTypes;
 
 import java.util.List;
@@ -21,6 +21,9 @@ public class ChatGroup {
     @Id
     @GeneratedValue
     private UUID id;
+
+    @NotNull
+    private UUID ownerId;
 
     @NotNull
     @Size(min = 5, max = 5)
@@ -43,4 +46,7 @@ public class ChatGroup {
     @JdbcTypeCode(SqlTypes.JSON)
     private Map<UUID, Boolean> usersReady;
 
+    @ManyToOne
+    @JoinColumn(name = "quiz_id")
+    private Quiz quiz;
 }

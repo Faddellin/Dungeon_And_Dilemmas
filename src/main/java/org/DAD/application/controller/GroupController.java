@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.security.auth.message.AuthException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -18,13 +19,14 @@ import org.DAD.application.security.JwtAuthentication;
 import org.DAD.application.service.GroupService;
 import org.DAD.application.service.QuizService;
 import org.DAD.application.util.CodeGenerator;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/")
+@RequestMapping("/api/v1/groups")
 public class GroupController {
 
     private final GroupService _groupService;
@@ -33,7 +35,7 @@ public class GroupController {
         _groupService = groupService;
     }
 
-    @GetMapping(path = "groups/")
+    @PostMapping()
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "Create group")
     @ApiResponses(value = {
@@ -60,17 +62,7 @@ public class GroupController {
         return _groupService.createGroup(authentication.getId());
     }
 
-    @GetMapping(path = "groups/test")
-    public void test() throws ExceptionWrapper {
-        _groupService.createGroup(UUID.fromString("89ce0044-8b6a-4126-b414-61bce247f9dd"));
-        PlayerIsReadyMessage pirm = new PlayerIsReadyMessage();
-        pirm.setPlayerId("89ce0044-8b6a-4126-b414-61bce247f9dd");
-        pirm.setIsReady(true);
-        _groupService.setPlayerIsReady(pirm);
-
-    }
-
-    @GetMapping(path = "groups/{code}")
+    @PostMapping(path = "/{code}")
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "Join group")
     @ApiResponses(value = {
@@ -97,4 +89,40 @@ public class GroupController {
         return _groupService.joinGroup(authentication.getId(), code);
     }
 
+    @PostMapping(path = "/select-quiz/{quizId}")
+    @SecurityRequirement(name = "JWT")
+    @Operation(summary = "Select quiz for group")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Quiz has been selected"
+            ),
+            @ApiResponse(responseCode = "400",
+                    description = "Bad request",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ResponseModel.class)
+                    )}
+            ),
+            @ApiResponse(responseCode = "401",
+                    description = "Unauthorized",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ResponseModel.class)
+                    )}
+            )
+    })
+    public GroupModel SelectQuiz(@PathVariable UUID quizId) throws ExceptionWrapper {
+        return _groupService.selectQuiz(getCurrentUserId(), quizId);
+    }
+
+    private UUID getCurrentUserId() throws ExceptionWrapper {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof JwtAuthentication jwtAuth) {
+            return jwtAuth.getId();
+        } else {
+            ExceptionWrapper authEx = new ExceptionWrapper(new AuthException());
+            authEx.addError("Authentication", "Invalid authentication");
+            throw authEx;
+        }
+    }
 }

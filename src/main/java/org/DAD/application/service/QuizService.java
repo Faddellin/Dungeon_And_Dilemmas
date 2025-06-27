@@ -4,11 +4,10 @@ import org.DAD.application.handler.ExceptionWrapper;
 import org.DAD.application.model.Answer.AnswerCreateModel;
 import org.DAD.application.model.Question.QuestionCreateModel;
 import org.DAD.application.model.Quiz.QuizCreateModel;
+import org.DAD.application.model.Quiz.QuizDetailModel;
 import org.DAD.application.model.Quiz.QuizFiltersModel;
 import org.DAD.application.model.Quiz.QuizModel;
 import org.DAD.application.model.Quiz.QuizPagedListModel;
-import org.DAD.domain.entity.Question.Question;
-import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
@@ -18,6 +17,8 @@ public interface QuizService {
     void deleteQuiz(UUID userId, UUID quizId) throws ExceptionWrapper;
 
     QuizModel getQuizById(UUID quizId) throws ExceptionWrapper;
+
+    QuizDetailModel getQuizDetailById(UUID userId, UUID quizId) throws ExceptionWrapper;
 
     QuizPagedListModel getQuizzesByFilters(QuizFiltersModel quizFiltersModel) throws ExceptionWrapper;
 

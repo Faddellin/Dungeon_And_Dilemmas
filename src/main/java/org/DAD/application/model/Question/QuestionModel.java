@@ -3,6 +3,7 @@ package org.DAD.application.model.Question;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.DAD.application.model.Answer.AnswerModel;
 import org.DAD.domain.entity.Question.QuestionType;
@@ -30,6 +31,12 @@ public class QuestionModel {
 
     @NotNull
     private QuestionType questionType;
+
+    @NotNull
+    @Size(min = 4, max = 256)
+    private String questionText;
+
+    private Integer questionNumber;
 
     private List<AnswerModel> answers;
 
