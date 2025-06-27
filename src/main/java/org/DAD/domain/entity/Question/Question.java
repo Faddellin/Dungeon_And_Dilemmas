@@ -52,4 +52,6 @@ public abstract class Question {
     @NotBlank
     @Size(min = 4, max = 256)
     private String questionText;
+
+    private Integer questionNumber;
 }

@@ -4,9 +4,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.DAD.application.model.Connection.MessageWrapper;
 
+import java.util.UUID;
+
 @Data
 @NoArgsConstructor
 public class AnswerResultMessage extends MessageWrapper {
     private boolean isCorrect;
-    private String correctAnswer;
+    private UUID playerAnswer;
+    private UUID correctAnswer;
 }

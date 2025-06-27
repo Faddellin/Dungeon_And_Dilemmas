@@ -12,6 +12,7 @@ import org.DAD.application.model.Answer.AnswerCreateModel;
 import org.DAD.application.model.CommonModels.ResponseModel;
 import org.DAD.application.model.Question.QuestionCreateModel;
 import org.DAD.application.model.Quiz.QuizCreateModel;
+import org.DAD.application.model.Quiz.QuizDetailModel;
 import org.DAD.application.model.Quiz.QuizFiltersModel;
 import org.DAD.application.model.Quiz.QuizModel;
 import org.DAD.application.model.Quiz.QuizPagedListModel;
@@ -116,6 +117,42 @@ public class QuizController {
             @PathVariable UUID id
     ) throws ExceptionWrapper {
         return _quizService.getQuizById(id);
+    }
+
+    @GetMapping(path = "quizzes/{quizId}/detail")
+    @SecurityRequirement(name = "JWT")
+    @Operation(summary = "Get detailed quiz by id (owner only)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Quiz detailed information retrieved"
+            ),
+            @ApiResponse(responseCode = "400",
+                    description = "Bad request",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ResponseModel.class)
+                    )}
+            ),
+            @ApiResponse(responseCode = "401",
+                    description = "Unauthorized",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ResponseModel.class)
+                    )}
+            ),
+            @ApiResponse(responseCode = "403",
+                    description = "Forbidden - not quiz owner",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ResponseModel.class)
+                    )}
+            )
+    })
+    public QuizDetailModel GetQuizDetailById(
+            @PathVariable UUID quizId
+    ) throws ExceptionWrapper {
+        JwtAuthentication authentication = (JwtAuthentication)SecurityContextHolder.getContext().getAuthentication();
+        return _quizService.getQuizDetailById(authentication.getId(), quizId);
     }
 
     @GetMapping(path = "quizzes")
@@ -235,7 +272,7 @@ public class QuizController {
         return _quizService.createAnswer(authentication.getId(), questionId, answerCreateModel);
     }
 
-    @PostMapping(path = "quizzes/questions/{questionId}/answers")
+    @PostMapping(path = "quizzes/questions/{questionId}/answers/{answerId}")
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "Set correct answer for question")
     @ApiResponses(value = {

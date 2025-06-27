@@ -1,6 +1,7 @@
 package org.DAD.domain.mapper;
 
 import org.DAD.application.model.Quiz.QuizCreateModel;
+import org.DAD.application.model.Quiz.QuizDetailModel;
 import org.DAD.application.model.Quiz.QuizModel;
 import org.DAD.domain.entity.Quiz.Quiz;
 import org.DAD.domain.entity.Quiz.QuizDifficulty;
@@ -10,7 +11,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = {UserMapper.class})
+@Mapper(uses = {UserMapper.class, QuestionMapper.class})
 public interface QuizMapper {
     QuizMapper INSTANCE = Mappers.getMapper(QuizMapper.class);
 
@@ -25,4 +26,8 @@ public interface QuizMapper {
 
     @Mapping(target = "userShortModel", source = "quiz.creator")
     QuizModel quizToQuizModel(Quiz quiz);
+
+    @Mapping(target = "creator", source = "quiz.creator")
+    @Mapping(target = "questions", source = "quiz.questions")
+    QuizDetailModel quizToQuizDetailModel(Quiz quiz);
 }
