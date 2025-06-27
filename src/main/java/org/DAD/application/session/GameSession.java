@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.DAD.application.handler.ExceptionWrapper;
 import org.DAD.application.model.Connection.FromBack.AnswerResultMessage;
+import org.DAD.application.model.Connection.FromBack.GameEndedMessage;
 import org.DAD.application.model.Connection.FromBack.QuestionMessage;
 import org.DAD.application.model.Question.QuestionModel;
 import org.DAD.application.repository.GroupRepository;
@@ -31,6 +32,7 @@ public class GameSession {
     private ConnectionService _connectionService;
     private GameAnsweringService _gameAnsweringService;
     private Integer currentQuestionNumber = 1;
+    private Map<UUID, Integer> _playersScores = new HashMap<>();
 
     public GameSession(UUID groupId, GroupRepository groupRepository, ConnectionService connectionService, GameAnsweringService gameAnsweringService, QuestionRepository questionRepository) {
         this.groupId = groupId;
@@ -62,6 +64,10 @@ public class GameSession {
     private void sendAnswersAndGoToNextQuestion() throws ExceptionWrapper {
         _gameAnsweringService.sendAnswerResults(groupId.toString());
         scheduler.schedule(this::goToNextQuestion, 5, TimeUnit.SECONDS);
+    }
+
+    private void addUsersScores(){
+
     }
 
     @Transactional
@@ -107,6 +113,6 @@ public class GameSession {
     }
 
     public void endGame() {
-
+        _connectionService.sendMessageToGroup(groupId, GameEndedMessage.builder().scores(Map.of()).build());
     }
 }

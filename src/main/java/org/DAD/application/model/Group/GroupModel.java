@@ -17,6 +17,9 @@ public class GroupModel {
     private UUID id;
 
     @NotNull
+    private UUID ownerId;
+
+    @NotNull
     @Size(min = 5, max = 5)
     private String code;
 

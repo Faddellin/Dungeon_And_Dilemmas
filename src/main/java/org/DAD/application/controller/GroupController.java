@@ -59,9 +59,7 @@ public class GroupController {
     })
     public GroupModel CreateGroup() throws ExceptionWrapper {
         JwtAuthentication authentication = (JwtAuthentication)SecurityContextHolder.getContext().getAuthentication();
-        GroupModel g = _groupService.createGroup(authentication.getId());
-        _groupService.setPlayerIsReady(PlayerIsReadyMessage.builder().isReady(true).readyPlayerId(authentication.getId()).build());
-        return g;
+        return _groupService.createGroup(authentication.getId());
     }
 
     @PostMapping(path = "/{code}")
@@ -113,8 +111,8 @@ public class GroupController {
                     )}
             )
     })
-    public GroupModel SelectQuiz(@PathVariable UUID quizId) throws ExceptionWrapper {
-        return _groupService.selectQuiz(getCurrentUserId(), quizId);
+    public void SelectQuiz(@PathVariable UUID quizId) throws ExceptionWrapper {
+        _groupService.selectQuiz(getCurrentUserId(), quizId);
     }
 
     private UUID getCurrentUserId() throws ExceptionWrapper {

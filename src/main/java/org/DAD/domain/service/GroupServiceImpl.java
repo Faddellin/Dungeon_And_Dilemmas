@@ -112,10 +112,12 @@ public class GroupServiceImpl implements GroupService {
             badRequestException.addError("User", "The user is already in the group");
             throw badRequestException;
         }
-        group.getUsersReady().put(user.getId(), false);
+        Map<UUID, Boolean> readyMap = new HashMap<>(group.getUsersReady());
+        readyMap.put(user.getId(), false);
+        group.setUsersReady(readyMap);
         user.setCurrentGroup(group);
-        _userRepository.save(user);
-        _groupRepository.save(group);
+        _groupRepository.flush();
+        _userRepository.flush();
 
         _connectionService.sendMessageToGroup(group.getId(),
                 PlayerJoinedMessage
@@ -164,6 +166,9 @@ public class GroupServiceImpl implements GroupService {
                 return;
             }
         }
+        if(group.getQuiz() == null){
+            needToStartGame = false;
+        }
         if(needToStartGame){
             GameSession gs = _gameSessionFactory.createSession(group.getId());
             gs.startGame();
@@ -209,7 +214,7 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @Transactional
-    public GroupModel selectQuiz(UUID userId, UUID quizId) throws ExceptionWrapper {
+    public void selectQuiz(UUID userId, UUID quizId) throws ExceptionWrapper {
         Optional<User> userO = _userRepository.findById(userId);
 
         if(userO.isEmpty()) {
@@ -243,7 +248,22 @@ public class GroupServiceImpl implements GroupService {
         group.setQuiz(quiz);
         _groupRepository.flush();
 
-        return GroupMapper.INSTANCE.groupToGroupModel(group);
+        Map<UUID, Boolean> readyMap = new HashMap<>(group.getUsersReady());
+
+        Boolean needToStartGame = true;
+        for(var a : readyMap.values()){
+            if(!a){
+                needToStartGame = false;
+                return;
+            }
+        }
+        if(group.getQuiz() == null){
+            needToStartGame = false;
+        }
+        if(needToStartGame){
+            GameSession gs = _gameSessionFactory.createSession(group.getId());
+            gs.startGame();
+        }
     }
 
 }
