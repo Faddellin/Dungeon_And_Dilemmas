@@ -7,6 +7,7 @@ import org.DAD.application.repository.ChoiceQuestionRepository;
 import org.DAD.application.repository.GroupRepository;
 import org.DAD.application.repository.QuestionRepository;
 import org.DAD.application.repository.TextAnswerRepository;
+import org.DAD.application.service.ConnectionService;
 import org.DAD.application.service.GameAnsweringService;
 import org.DAD.domain.entity.Answer.TextAnswer;
 import org.DAD.domain.entity.Group.ChatGroup;
@@ -25,12 +26,10 @@ import java.util.UUID;
 @Service
 @AllArgsConstructor
 public class GameAnsweringServiceImpl implements GameAnsweringService {
-    private final AnswerRepository answerRepository;
-    private final QuestionRepository questionRepository;
     private final ChoiceQuestionRepository choiceQuestionRepository;
     private final TextAnswerRepository textAnswerRepository;
     private final GroupRepository groupRepository;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final ConnectionService _connectionService;
 
     @Override
     public Boolean isAnswerCorrect(UUID questionId, UUID answerId) throws ExceptionWrapper {
@@ -118,22 +117,11 @@ public class GameAnsweringServiceImpl implements GameAnsweringService {
 
         Map<UUID, UUID> usersAnswers = group.getUsersAnswers();
         TextAnswer correctAnswer = getCorrectAnswer(currentQuestion.getId());
-        
-        for (User user : group.getMembers()) {
-            AnswerResultMessage answerResultMessage = new AnswerResultMessage();
-            answerResultMessage.setPlayerId(user.getId().toString());
-            answerResultMessage.setCorrectAnswer(correctAnswer.getId());
-            answerResultMessage.setPlayerAnswer(usersAnswers.get(user.getId()));
-            
-            UUID userAnswerId = usersAnswers.get(user.getId());
-            if (userAnswerId != null) {
-                answerResultMessage.setCorrect(isAnswerCorrect(currentQuestion.getId(), userAnswerId));
-            } 
-            else {
-                answerResultMessage.setCorrect(false);
-            }
 
-            messagingTemplate.convertAndSend("/topic/game/" + groupId, answerResultMessage);
-        }
+        AnswerResultMessage answerResultMessage = new AnswerResultMessage();
+        answerResultMessage.setCorrectAnswer(correctAnswer.getId());
+        answerResultMessage.setUsersAnswers(usersAnswers);
+
+        _connectionService.sendMessageToGroup(UUID.fromString(groupId), answerResultMessage);
     }
 }

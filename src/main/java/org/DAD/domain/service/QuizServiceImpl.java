@@ -363,7 +363,7 @@ public class QuizServiceImpl implements QuizService {
     public void setCorrectAnswer(UUID userId, UUID questionId, UUID answerId) throws ExceptionWrapper{
         Optional<User> userO = _userRepository.findById(userId);
         Optional<Question> questionO = _questionRepository.findById(questionId);
-        Optional<Answer> answerO = _answerRepository.findById(questionId);
+        Optional<Answer> answerO = _answerRepository.findById(answerId);
 
         {
             ExceptionWrapper entityNotFoundException = new ExceptionWrapper(new EntityNotFoundException());
@@ -416,7 +416,7 @@ public class QuizServiceImpl implements QuizService {
         }
 
         Answer answer = switch (answerCreateModel.getAnswerType()){
-            default -> AnswerMapper.INSTANCE.textAnswerCreateModelToTextAnswer((TextAnswerCreateModel) answerCreateModel, choiceQuestion);
+            default -> AnswerMapper.INSTANCE.textAnswerCreateModelToTextAnswer((TextAnswerCreateModel) answerCreateModel, choiceQuestion, false);
         };
 
         choiceQuestion.getAnswers().add(answer);

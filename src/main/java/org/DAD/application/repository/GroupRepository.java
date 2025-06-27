@@ -1,5 +1,6 @@
 package org.DAD.application.repository;
 
+import jakarta.transaction.Transactional;
 import org.DAD.domain.entity.Group.ChatGroup;
 import org.springframework.data.jpa.repository.JpaRepository;
 

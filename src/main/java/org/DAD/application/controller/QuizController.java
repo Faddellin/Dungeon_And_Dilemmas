@@ -11,10 +11,7 @@ import org.DAD.application.handler.ExceptionWrapper;
 import org.DAD.application.model.Answer.AnswerCreateModel;
 import org.DAD.application.model.CommonModels.ResponseModel;
 import org.DAD.application.model.Question.QuestionCreateModel;
-import org.DAD.application.model.Quiz.QuizCreateModel;
-import org.DAD.application.model.Quiz.QuizFiltersModel;
-import org.DAD.application.model.Quiz.QuizModel;
-import org.DAD.application.model.Quiz.QuizPagedListModel;
+import org.DAD.application.model.Quiz.*;
 import org.DAD.application.security.JwtAuthentication;
 import org.DAD.application.service.QuizService;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -271,7 +268,7 @@ public class QuizController {
         return _quizService.createAnswer(authentication.getId(), questionId, answerCreateModel);
     }
 
-    @PostMapping(path = "quizzes/questions/{questionId}/answers")
+    @PutMapping(path = "quizzes/questions/{questionId}/answers/{answerId}")
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "Set correct answer for question")
     @ApiResponses(value = {

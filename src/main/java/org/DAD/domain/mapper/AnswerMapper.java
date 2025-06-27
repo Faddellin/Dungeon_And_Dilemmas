@@ -13,9 +13,11 @@ public interface AnswerMapper {
     AnswerMapper INSTANCE = Mappers.getMapper(AnswerMapper.class);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "isCorrect", source = "isCorrect")
     @Mapping(target = "question", source = "question")
     TextAnswer textAnswerCreateModelToTextAnswer(TextAnswerCreateModel textAnswerCreateModel,
-                                                 Question question);
+                                                 Question question,
+                                                 Boolean isCorrect);
 
     TextAnswerModel textAnswerToTextAnswerModel(TextAnswer textAnswer);
 }

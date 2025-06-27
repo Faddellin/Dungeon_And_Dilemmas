@@ -59,7 +59,9 @@ public class GroupController {
     })
     public GroupModel CreateGroup() throws ExceptionWrapper {
         JwtAuthentication authentication = (JwtAuthentication)SecurityContextHolder.getContext().getAuthentication();
-        return _groupService.createGroup(authentication.getId());
+        GroupModel g = _groupService.createGroup(authentication.getId());
+        _groupService.setPlayerIsReady(PlayerIsReadyMessage.builder().isReady(true).readyPlayerId(authentication.getId()).build());
+        return g;
     }
 
     @PostMapping(path = "/{code}")

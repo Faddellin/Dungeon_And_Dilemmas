@@ -8,7 +8,10 @@ import org.DAD.application.model.Connection.PlayerLeftMessage;
 import org.DAD.application.model.Group.GroupModel;
 import org.DAD.application.repository.*;
 import org.DAD.application.service.ConnectionService;
+import org.DAD.application.service.GameAnsweringService;
 import org.DAD.application.service.GroupService;
+import org.DAD.application.session.GameSession;
+import org.DAD.application.session.GameSessionFactory;
 import org.DAD.application.util.CodeGenerator;
 import org.DAD.domain.entity.Group.ChatGroup;
 import org.DAD.domain.entity.Quiz.Quiz;
@@ -20,6 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 @Service
 public class GroupServiceImpl implements GroupService {
@@ -29,18 +34,21 @@ public class GroupServiceImpl implements GroupService {
     private final QuizRepository _quizRepository;
     private final CodeGenerator _codeGenerator;
     private final ConnectionService _connectionService;
+    private final GameSessionFactory _gameSessionFactory;
 
     public GroupServiceImpl(
             GroupRepository groupRepository,
             UserRepository userRepository,
             QuizRepository quizRepository,
             CodeGenerator codeGenerator,
-            ConnectionService connectionService) {
+            ConnectionService connectionService,
+            GameSessionFactory gameSessionFactory) {
         _groupRepository = groupRepository;
         _userRepository = userRepository;
         _quizRepository = quizRepository;
         _codeGenerator = codeGenerator;
         _connectionService = connectionService;
+        _gameSessionFactory = gameSessionFactory;
     }
 
     @Transactional
@@ -120,9 +128,8 @@ public class GroupServiceImpl implements GroupService {
         return GroupMapper.INSTANCE.groupToGroupModel(group);
     }
 
-    @Transactional
     public void setPlayerIsReady(PlayerIsReadyMessage playerIsReadyMessage)throws ExceptionWrapper {
-        Optional<User> userO = _userRepository.findById(UUID.fromString(playerIsReadyMessage.getPlayerId()));
+        Optional<User> userO = _userRepository.findById(playerIsReadyMessage.getReadyPlayerId());
 
         if(userO.isEmpty()){
             ExceptionWrapper entityNotFoundException = new ExceptionWrapper(new EntityNotFoundException());
@@ -141,7 +148,7 @@ public class GroupServiceImpl implements GroupService {
         Map<UUID, Boolean> readyMap = new HashMap<>(group.getUsersReady());
         readyMap.put(user.getId(), playerIsReadyMessage.getIsReady());
         group.setUsersReady(readyMap);
-        _userRepository.flush();
+        _groupRepository.flush();
 
         _connectionService.sendMessageToGroup(group.getId(),
                 PlayerIsReadyMessage
@@ -158,8 +165,8 @@ public class GroupServiceImpl implements GroupService {
             }
         }
         if(needToStartGame){
-            //TO-DO
-            //Добавить запуск таймера, который также отправит на фронт модель о том, что игра началась
+            GameSession gs = _gameSessionFactory.createSession(group.getId());
+            gs.startGame();
         }
 
     }
