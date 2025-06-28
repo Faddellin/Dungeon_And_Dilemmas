@@ -1,14 +1,21 @@
 package org.DAD.domain.entity.Result;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import java.io.Serializable;
+import java.util.UUID;
+
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.DAD.domain.entity.Quiz.Quiz;
 import org.DAD.domain.entity.User.User;
 
 @Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@IdClass(Result.ResultId.class)
 public class Result {
     @Id
     @ManyToOne
@@ -23,4 +30,11 @@ public class Result {
     @NotNull
     private Integer score;
 
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ResultId implements Serializable {
+        private UUID user;
+        private UUID quiz;
+    }
 }

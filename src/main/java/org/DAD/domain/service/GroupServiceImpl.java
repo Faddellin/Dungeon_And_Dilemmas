@@ -8,7 +8,6 @@ import org.DAD.application.model.Connection.PlayerLeftMessage;
 import org.DAD.application.model.Group.GroupModel;
 import org.DAD.application.repository.*;
 import org.DAD.application.service.ConnectionService;
-import org.DAD.application.service.GameAnsweringService;
 import org.DAD.application.service.GroupService;
 import org.DAD.application.session.GameSession;
 import org.DAD.application.session.GameSessionFactory;
@@ -23,8 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 @Service
 public class GroupServiceImpl implements GroupService {

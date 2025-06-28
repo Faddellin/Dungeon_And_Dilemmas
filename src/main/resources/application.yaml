@@ -7,7 +7,7 @@ spring:
     datasource:
         url: jdbc:postgresql://localhost:5432/Dungeon_And_Dilemmas
         username: postgres
-        password: 123
+        password: 12345
         driver-class-name: org.postgresql.Driver
     jpa:
         hibernate:
@@ -26,7 +26,7 @@ jwt:
         access: dmVyeS1zdHJvbmctc2VjcmV0LWZvci1hY2Nlc3MtdG9rZW4tMDAx
         refresh: dmVyeS1zdHJvbmctc2VjcmV0LWZvci1yZWZyZXNoLXRva2VuLTAwMg==
     lifetime:
-        access-minutes: 500
+        access-minutes: 1
         refresh-days: 30
 server:
     port: 8080

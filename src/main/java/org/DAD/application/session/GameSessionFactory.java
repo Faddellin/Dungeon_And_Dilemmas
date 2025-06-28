@@ -3,6 +3,7 @@ package org.DAD.application.session;
 import lombok.AllArgsConstructor;
 import org.DAD.application.repository.GroupRepository;
 import org.DAD.application.repository.QuestionRepository;
+import org.DAD.application.repository.ResultRepository;
 import org.DAD.application.service.ConnectionService;
 import org.DAD.application.service.GameAnsweringService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ public class GameSessionFactory {
     private final ConnectionService connectionService;
     private final GameAnsweringService gameAnsweringService;
     private final QuestionRepository questionRepository;
+    private final ResultRepository resultRepository;
 
     public GameSession createSession(UUID groupId) {
         return new GameSession(
@@ -25,7 +27,8 @@ public class GameSessionFactory {
                 groupRepository,
                 connectionService,
                 gameAnsweringService,
-                questionRepository
+                questionRepository,
+                resultRepository
         );
     }
 }

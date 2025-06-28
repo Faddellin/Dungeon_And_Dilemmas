@@ -11,10 +11,14 @@ import org.DAD.application.model.Question.QuestionModel;
 import org.DAD.application.repository.GroupRepository;
 import org.DAD.application.repository.QuestionRepository;
 import org.DAD.application.repository.QuizRepository;
+import org.DAD.application.repository.ResultRepository;
 import org.DAD.application.service.ConnectionService;
 import org.DAD.application.service.GameAnsweringService;
 import org.DAD.domain.entity.Group.ChatGroup;
+import org.DAD.domain.entity.Question.ChoiceQuestion;
 import org.DAD.domain.entity.Question.Question;
+import org.DAD.domain.entity.Result.Result;
+import org.DAD.domain.entity.User.User;
 import org.DAD.domain.mapper.QuestionMapper;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,17 +33,21 @@ public class GameSession {
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(5);
     private GroupRepository _groupRepository;
     private QuestionRepository _questionRepository;
+    private ResultRepository _resultRepository;
     private ConnectionService _connectionService;
     private GameAnsweringService _gameAnsweringService;
     private Integer currentQuestionNumber = 1;
     private Map<UUID, Integer> _playersScores = new HashMap<>();
 
-    public GameSession(UUID groupId, GroupRepository groupRepository, ConnectionService connectionService, GameAnsweringService gameAnsweringService, QuestionRepository questionRepository) {
+    public GameSession(UUID groupId, GroupRepository groupRepository, ConnectionService connectionService, 
+                      GameAnsweringService gameAnsweringService, QuestionRepository questionRepository,
+                      ResultRepository resultRepository) {
         this.groupId = groupId;
         this._connectionService = connectionService;
         this._gameAnsweringService = gameAnsweringService;
         this._groupRepository = groupRepository;
         this._questionRepository = questionRepository;
+        this._resultRepository = resultRepository;
     }
 
     private void goToNextQuestion() {
@@ -62,12 +70,36 @@ public class GameSession {
     }
 
     private void sendAnswersAndGoToNextQuestion() throws ExceptionWrapper {
+        calculateScoresForCurrentQuestion();
+        
         _gameAnsweringService.sendAnswerResults(groupId.toString());
         scheduler.schedule(this::goToNextQuestion, 5, TimeUnit.SECONDS);
     }
 
-    private void addUsersScores(){
-
+    private void calculateScoresForCurrentQuestion() {
+        try {
+            ChatGroup group = _groupRepository.findById(groupId).get();
+            Question currentQuestion = group.getCurrentQuestion();
+            
+            if (currentQuestion instanceof ChoiceQuestion choiceQuestion) {
+                Map<UUID, UUID> usersAnswers = group.getUsersAnswers();
+                UUID correctAnswerId = choiceQuestion.getRightAnswerId();
+                
+                if (usersAnswers != null && correctAnswerId != null) {
+                    for (Map.Entry<UUID, UUID> entry : usersAnswers.entrySet()) {
+                        UUID userId = entry.getKey();
+                        UUID userAnswerId = entry.getValue();
+                        
+                        if (correctAnswerId.equals(userAnswerId)) {
+                            Integer currentScore = _playersScores.getOrDefault(userId, 0);
+                            _playersScores.put(userId, currentScore + currentQuestion.getReward());
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error calculating scores: " + e.getMessage());
+        }
     }
 
     @Transactional
@@ -82,6 +114,7 @@ public class GameSession {
             return null;
         }else{
             group.setCurrentQuestion(questionO.get());
+            group.setUsersAnswers(new HashMap<>());
             _groupRepository.save(group);
             _groupRepository.flush();
             currentQuestionNumber++;
@@ -113,6 +146,41 @@ public class GameSession {
     }
 
     public void endGame() {
-        _connectionService.sendMessageToGroup(groupId, GameEndedMessage.builder().scores(Map.of()).build());
+        saveResultsToDatabase();
+        
+        _connectionService.sendMessageToGroup(groupId, GameEndedMessage.builder().scores(_playersScores).build());
+    }
+
+    @Transactional
+    protected void saveResultsToDatabase() {
+        try {
+            ChatGroup group = _groupRepository.findById(groupId).get();
+            
+            for (User user : group.getMembers()) {
+                Integer score = _playersScores.getOrDefault(user.getId(), 0);
+                
+                Result.ResultId resultId = new Result.ResultId(user.getId(), group.getQuiz().getId());
+                
+                Optional<Result> existingResult = _resultRepository.findById(resultId);
+                
+                Result result;
+                if (existingResult.isPresent()) {
+                    result = existingResult.get();
+                    result.setScore(score);
+                } 
+                else {
+                    result = new Result();
+                    result.setUser(user);
+                    result.setQuiz(group.getQuiz());
+                    result.setScore(score);
+                }
+                
+                _resultRepository.save(result);
+            }
+            
+            _resultRepository.flush();
+        } catch (Exception e) {
+            System.err.println("Error saving results to database: " + e.getMessage());
+        }
     }
 }
