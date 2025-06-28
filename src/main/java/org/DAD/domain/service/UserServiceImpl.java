@@ -92,6 +92,11 @@ public class UserServiceImpl implements UserService {
                                     .bestUsersGame(bestGame)
                                     .build();
                             })
+                            .sorted((user1, user2) -> {
+                                Integer points1 = user1.totalPoints != null ? user1.totalPoints : 0;
+                                Integer points2 = user2.totalPoints != null ? user2.totalPoints : 0;
+                                return points2.compareTo(points1);
+                            })
                             .collect(Collectors.toList()));
     }
 
