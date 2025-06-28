@@ -120,6 +120,7 @@ public class GameAnsweringServiceImpl implements GameAnsweringService {
 
         AnswerResultMessage answerResultMessage = new AnswerResultMessage();
         answerResultMessage.setCorrectAnswer(correctAnswer.getId());
+        answerResultMessage.setCorrectAnswerText(correctAnswer.getText());
         answerResultMessage.setUsersAnswers(usersAnswers);
 
         _connectionService.sendMessageToGroup(UUID.fromString(groupId), answerResultMessage);

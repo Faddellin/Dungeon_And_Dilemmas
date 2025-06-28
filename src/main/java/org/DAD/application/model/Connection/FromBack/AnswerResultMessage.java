@@ -15,4 +15,5 @@ import java.util.UUID;
 public class AnswerResultMessage extends MessageWrapper {
     private Map<UUID, UUID> usersAnswers;
     private UUID correctAnswer;
+    private String correctAnswerText;
 }

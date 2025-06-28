@@ -19,6 +19,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.GenericFilterBean;
 
 import java.io.IOException;
+import java.util.Enumeration;
 
 @Slf4j
 @Component
@@ -31,7 +32,16 @@ public class JwtFilter extends GenericFilterBean {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         final String token = getTokenFromRequest((HttpServletRequest) servletRequest);
         HttpServletRequest request = (HttpServletRequest) servletRequest;
-
+        System.out.println(request.getRequestURI());
+        Enumeration<String> headerNames = request.getHeaderNames();
+        if (headerNames != null) {
+            while (headerNames.hasMoreElements()) {
+                System.out.println("Header: " + request.getHeader(headerNames.nextElement()));
+            }
+        }
+        if(request.getRequestURI().contains("/ws")){
+            var a = 5;
+        }
         try {
             if (token != null) {
                 if (jwtProvider.validateAccessToken(token)) {

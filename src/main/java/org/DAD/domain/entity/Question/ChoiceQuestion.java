@@ -14,7 +14,7 @@ import java.util.UUID;
 public class ChoiceQuestion
         extends Question {
 
-    @OneToMany(mappedBy = "question")
+    @OneToMany(mappedBy = "question", fetch = FetchType.EAGER)
     @Size(max = 4)
     private List<Answer> answers;
 

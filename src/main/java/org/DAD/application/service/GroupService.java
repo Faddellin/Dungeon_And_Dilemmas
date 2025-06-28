@@ -12,9 +12,10 @@ public interface GroupService {
 
     GroupModel joinGroup(UUID userId, String code) throws ExceptionWrapper;
 
-    GroupModel selectQuiz(UUID userId, UUID quizId) throws ExceptionWrapper;
+    void selectQuiz(UUID userId, UUID quizId) throws ExceptionWrapper;
 
     void setPlayerIsReady(PlayerIsReadyMessage playerIsReadyMessage)throws ExceptionWrapper;
+    void setPlayerIsReady2(PlayerIsReadyMessage playerIsReadyMessage)throws ExceptionWrapper;
 
     void leftGroup(PlayerLeftMessage playerLeftMessage) throws ExceptionWrapper;
 }

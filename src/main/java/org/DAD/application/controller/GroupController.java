@@ -59,9 +59,7 @@ public class GroupController {
     })
     public GroupModel CreateGroup() throws ExceptionWrapper {
         JwtAuthentication authentication = (JwtAuthentication)SecurityContextHolder.getContext().getAuthentication();
-        GroupModel g = _groupService.createGroup(authentication.getId());
-        _groupService.setPlayerIsReady(PlayerIsReadyMessage.builder().isReady(true).readyPlayerId(authentication.getId()).build());
-        return g;
+        return _groupService.createGroup(authentication.getId());
     }
 
     @PostMapping(path = "/{code}")
@@ -91,6 +89,33 @@ public class GroupController {
         return _groupService.joinGroup(authentication.getId(), code);
     }
 
+    @PostMapping(path = "test")
+    @SecurityRequirement(name = "JWT")
+    @Operation(summary = "test")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Group has been joined"
+            ),
+            @ApiResponse(responseCode = "400",
+                    description = "Bad request",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ResponseModel.class)
+                    )}
+            ),
+            @ApiResponse(responseCode = "401",
+                    description = "Unauthorized",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ResponseModel.class)
+                    )}
+            )
+    })
+    public void JoinGroup(@RequestParam Boolean isReady) throws ExceptionWrapper {
+        JwtAuthentication authentication = (JwtAuthentication)SecurityContextHolder.getContext().getAuthentication();
+        _groupService.setPlayerIsReady2(PlayerIsReadyMessage.builder().readyPlayerId(authentication.getId()).isReady(isReady).build());
+    }
+
     @PostMapping(path = "/select-quiz/{quizId}")
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "Select quiz for group")
@@ -113,8 +138,8 @@ public class GroupController {
                     )}
             )
     })
-    public GroupModel SelectQuiz(@PathVariable UUID quizId) throws ExceptionWrapper {
-        return _groupService.selectQuiz(getCurrentUserId(), quizId);
+    public void SelectQuiz(@PathVariable UUID quizId) throws ExceptionWrapper {
+        _groupService.selectQuiz(getCurrentUserId(), quizId);
     }
 
     private UUID getCurrentUserId() throws ExceptionWrapper {
