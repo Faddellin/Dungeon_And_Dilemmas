@@ -6,6 +6,7 @@ import org.DAD.application.handler.ExceptionWrapper;
 import org.DAD.application.model.User.*;
 import org.DAD.application.repository.UserRepository;
 import org.DAD.application.repository.specification.UserSpecification;
+import org.DAD.application.service.ResultService;
 import org.DAD.application.service.UserService;
 import org.DAD.domain.entity.Quiz.Quiz;
 import org.DAD.domain.entity.User.User;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ResultService resultService;
 
     @Override
     public Optional<User> findByEmail(String email) {
@@ -47,16 +49,25 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserModel getProfileById(UUID userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public UserModel getProfileById(UUID userId) throws ExceptionWrapper {
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) {
+            ExceptionWrapper entityNotFoundEx = new ExceptionWrapper(new EntityNotFoundException());
+            entityNotFoundEx.addError("User", "User not found");
+            throw entityNotFoundEx;
+        }
+
+        User user = userOpt.get();
+        
+        Integer totalPoints = resultService.getTotalPointsByUserId(userId);
+        BestUsersGameModel bestGame = resultService.getBestGameByUserId(userId);
         
         return UserModel.builder()
                 .id(user.getId())
                 .email(user.getEmail())
                 .userName(user.getUserName())
-                .totalPoints( 0)
-                .bestUsersGame(null)
+                .totalPoints(totalPoints)
+                .bestUsersGame(bestGame)
                 .build();
     }
 
@@ -70,12 +81,22 @@ public class UserServiceImpl implements UserService {
         }
         users = userRepository.findAll(spec);
         return new UserListModel(users.stream()
-                            .map(user -> UserOtherModel.builder()
-                            .id(user.getId())
-                            .userName(user.getUserName())
-                            .totalPoints(0)
-                            .bestUsersGame(null)
-                            .build())
+                            .map(user -> {
+                                Integer totalPoints = resultService.getTotalPointsByUserId(user.getId());
+                                BestUsersGameModel bestGame = resultService.getBestGameByUserId(user.getId());
+                                
+                                return UserOtherModel.builder()
+                                    .id(user.getId())
+                                    .userName(user.getUserName())
+                                    .totalPoints(totalPoints)
+                                    .bestUsersGame(bestGame)
+                                    .build();
+                            })
+                            .sorted((user1, user2) -> {
+                                Integer points1 = user1.totalPoints != null ? user1.totalPoints : 0;
+                                Integer points2 = user2.totalPoints != null ? user2.totalPoints : 0;
+                                return points2.compareTo(points1);
+                            })
                             .collect(Collectors.toList()));
     }
 
@@ -101,12 +122,16 @@ public class UserServiceImpl implements UserService {
         user.setEmail(editModel.newEmail);
         user.setUserName(editModel.newUserName);
         userRepository.save(user);
+        
+        Integer totalPoints = resultService.getTotalPointsByUserId(userId);
+        BestUsersGameModel bestGame = resultService.getBestGameByUserId(userId);
+        
         return new UserModel(
                 user.getId(),
                 user.getEmail(),
                 user.getUserName(),
-                0,
-                null
+                totalPoints,
+                bestGame
         );
     }
 

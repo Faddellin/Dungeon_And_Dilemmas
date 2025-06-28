@@ -3,7 +3,6 @@ package org.DAD.application.session;
 import lombok.AllArgsConstructor;
 import org.DAD.application.repository.GroupRepository;
 import org.DAD.application.repository.QuestionRepository;
-import org.DAD.application.repository.UserRepository;
 import org.DAD.application.service.ConnectionService;
 import org.DAD.application.service.GameAnsweringService;
 import org.DAD.application.service.UserService;
@@ -21,6 +20,7 @@ public class GameSessionFactory {
     private final GameAnsweringService gameAnsweringService;
     private final QuestionRepository questionRepository;
     private final UserRepository userRepository;
+    private final ResultRepository resultRepository;
 
     public GameSession createSession(UUID groupId) {
         return new GameSession(
@@ -30,6 +30,8 @@ public class GameSessionFactory {
                 gameAnsweringService,
                 questionRepository,
                 userRepository
+                questionRepository,
+                resultRepository
         );
     }
 }

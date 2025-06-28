@@ -87,7 +87,7 @@ public class UserController {
                             schema = @Schema(implementation = ResponseModel.class)
                     )})
     })
-    public ResponseEntity<UserOtherModel> getUsersProfile(@PathVariable UUID userId) {
+    public ResponseEntity<UserOtherModel> getUsersProfile(@PathVariable UUID userId) throws ExceptionWrapper {
         var userModel =  userService.getProfileById(userId);
         return new ResponseEntity<>(new UserOtherModel(
                 userModel.id, userModel.userName,

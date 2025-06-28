@@ -16,7 +16,7 @@ public interface UserService {
     void save(User user);
     Optional<User> findById(UUID id);
     boolean existsByEmail(String email);
-    UserModel getProfileById(UUID userId);
+    UserModel getProfileById(UUID userId) throws ExceptionWrapper;
     UserListModel findUsers(String name);
     UserModel editProfile(UUID userId, UserEditModel editModel) throws ExceptionWrapper;
     void editPassword(UUID userId, UserEditPasswordModel editPasswordModel) throws ExceptionWrapper;
