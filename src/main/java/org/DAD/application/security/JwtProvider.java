@@ -50,6 +50,7 @@ public class JwtProvider {
                 .signWith(jwtAccessSecret)
                 .claim("user_id", user.getId().toString())
                 .claim("role", user.getRole())
+                .claim("email", user.getEmail())
                 .compact();
     }
 
@@ -61,6 +62,7 @@ public class JwtProvider {
                 .signWith(jwtRefreshSecret)
                 .claim("user_id", user.getId().toString())
                 .claim("role", user.getRole())
+                .claim("email", user.getEmail())
                 .compact();
     }
 
