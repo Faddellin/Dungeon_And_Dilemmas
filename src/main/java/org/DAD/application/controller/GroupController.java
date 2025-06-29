@@ -89,12 +89,12 @@ public class GroupController {
         return _groupService.joinGroup(authentication.getId(), code);
     }
 
-    @PostMapping(path = "test")
+    @GetMapping()
     @SecurityRequirement(name = "JWT")
-    @Operation(summary = "test")
+    @Operation(summary = "Get current user group")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200",
-                    description = "Group has been joined"
+                    description = "Group retrieved"
             ),
             @ApiResponse(responseCode = "400",
                     description = "Bad request",
@@ -111,9 +111,9 @@ public class GroupController {
                     )}
             )
     })
-    public void JoinGroup(@RequestParam Boolean isReady) throws ExceptionWrapper {
+    public GroupModel GetGroup() throws ExceptionWrapper {
         JwtAuthentication authentication = (JwtAuthentication)SecurityContextHolder.getContext().getAuthentication();
-        _groupService.setPlayerIsReady2(PlayerIsReadyMessage.builder().readyPlayerId(authentication.getId()).isReady(isReady).build());
+        return _groupService.getGroup(authentication.getId());
     }
 
     @PostMapping(path = "/select-quiz/{quizId}")

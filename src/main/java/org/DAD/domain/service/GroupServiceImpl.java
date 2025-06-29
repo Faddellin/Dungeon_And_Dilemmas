@@ -13,6 +13,7 @@ import org.DAD.application.session.GameSession;
 import org.DAD.application.session.GameSessionFactory;
 import org.DAD.application.util.CodeGenerator;
 import org.DAD.domain.entity.Group.ChatGroup;
+import org.DAD.domain.entity.Group.GroupStatus;
 import org.DAD.domain.entity.Quiz.Quiz;
 import org.DAD.domain.entity.User.User;
 import org.DAD.domain.mapper.GroupMapper;
@@ -73,6 +74,7 @@ public class GroupServiceImpl implements GroupService {
         group.setUsersReady(Map.of(user.getId(), false));
         group.setOwnerId(user.getId());
         group.setMembers(List.of(user));
+        group.setGroupStatus(GroupStatus.menu);
         _groupRepository.save(group);
         _groupRepository.flush();
 
@@ -86,7 +88,7 @@ public class GroupServiceImpl implements GroupService {
     @Transactional
     public GroupModel joinGroup(UUID userId, String code)throws ExceptionWrapper {
         Optional<User> userO = _userRepository.findById(userId);
-        Optional<ChatGroup> groupO = _groupRepository.findByCode(code);
+        Optional<ChatGroup> groupO = _groupRepository.findByCode(code.toLowerCase());
 
         {
             ExceptionWrapper entityNotFoundException = new ExceptionWrapper(new EntityNotFoundException());
@@ -109,9 +111,18 @@ public class GroupServiceImpl implements GroupService {
             badRequestException.addError("User", "The user is already in the group");
             throw badRequestException;
         }
+        if(group.getGroupStatus() == GroupStatus.playing){
+            ExceptionWrapper badRequestException = new ExceptionWrapper(new BadRequestException());
+            badRequestException.addError("Group", "The group is playing, you can't join it");
+            throw badRequestException;
+        }
+
         Map<UUID, Boolean> readyMap = new HashMap<>(group.getUsersReady());
         readyMap.put(user.getId(), false);
         group.setUsersReady(readyMap);
+        List<User> currentMembers = group.getMembers();
+        currentMembers.add(user);
+        group.setMembers(currentMembers);
         user.setCurrentGroup(group);
         _groupRepository.flush();
         _userRepository.flush();
@@ -127,9 +138,21 @@ public class GroupServiceImpl implements GroupService {
         return GroupMapper.INSTANCE.groupToGroupModel(group);
     }
 
+    public GroupModel getGroup(UUID userId) throws ExceptionWrapper{
+        Optional<User> userO = _userRepository.findById(userId);
+        if(userO.isEmpty()){
+            ExceptionWrapper entityNotFoundException = new ExceptionWrapper(new EntityNotFoundException());
+            entityNotFoundException.addError("User", "User doesn't exist");
+            throw entityNotFoundException;
+        }
+
+        User user = userO.get();
+
+        return GroupMapper.INSTANCE.groupToGroupModel(user.getCurrentGroup());
+    }
+
     public void setPlayerIsReady(PlayerIsReadyMessage playerIsReadyMessage)throws ExceptionWrapper {
         Optional<User> userO = _userRepository.findById(UUID.fromString(playerIsReadyMessage.getPlayerId()));
-        //Optional<User> userO = _userRepository.findById(playerIsReadyMessage.getReadyPlayerId());
         if(userO.isEmpty()){
             ExceptionWrapper entityNotFoundException = new ExceptionWrapper(new EntityNotFoundException());
             entityNotFoundException.addError("User", "User doesn't exist");
@@ -148,51 +171,6 @@ public class GroupServiceImpl implements GroupService {
         readyMap.put(user.getId(), playerIsReadyMessage.getIsReady());
         group.setUsersReady(readyMap);
         _groupRepository.save(group);
-        _groupRepository.flush();
-
-        _connectionService.sendMessageToGroup(group.getId(),
-                PlayerIsReadyMessage
-                        .builder()
-                        .readyPlayerId(user.getId())
-                        .isReady(playerIsReadyMessage.getIsReady())
-                        .build());
-
-        Boolean needToStartGame = true;
-        for(var a : readyMap.values()){
-            if(!a){
-                needToStartGame = false;
-                return;
-            }
-        }
-        if(group.getQuiz() == null){
-            needToStartGame = false;
-        }
-        if(needToStartGame){
-            GameSession gs = _gameSessionFactory.createSession(group.getId());
-            gs.startGame();
-        }
-
-    }
-
-    public void setPlayerIsReady2(PlayerIsReadyMessage playerIsReadyMessage)throws ExceptionWrapper {
-        Optional<User> userO = _userRepository.findById(playerIsReadyMessage.getReadyPlayerId());
-        if(userO.isEmpty()){
-            ExceptionWrapper entityNotFoundException = new ExceptionWrapper(new EntityNotFoundException());
-            entityNotFoundException.addError("User", "User doesn't exist");
-            throw entityNotFoundException;
-        }
-
-        User user = userO.get();
-        ChatGroup group = user.getCurrentGroup();
-
-        if(group == null){
-            ExceptionWrapper entityNotFoundException = new ExceptionWrapper(new EntityNotFoundException());
-            entityNotFoundException.addError("User", "User is not in group");
-            throw entityNotFoundException;
-        }
-        Map<UUID, Boolean> readyMap = new HashMap<>(group.getUsersReady());
-        readyMap.put(user.getId(), playerIsReadyMessage.getIsReady());
-        group.setUsersReady(readyMap);
         _groupRepository.flush();
 
         _connectionService.sendMessageToGroup(group.getId(),
@@ -234,19 +212,26 @@ public class GroupServiceImpl implements GroupService {
 
         user.setCurrentGroup(null);
 
-        Map<UUID, Boolean> readyMap = new HashMap<>(group.getUsersReady());
-        readyMap.remove(user.getId());
-        group.setUsersReady(readyMap);
-        Map<UUID, UUID> answersMap = new HashMap<>(group.getUsersAnswers());
-        readyMap.remove(user.getId());
-        group.setUsersAnswers(answersMap);
+        if(group.getUsersReady() != null){
+            Map<UUID, Boolean> readyMap = new HashMap<>(group.getUsersReady());
+            readyMap.remove(user.getId());
+            group.setUsersReady(readyMap);
+        }
+        if(group.getUsersAnswers() != null){
+            Map<UUID, UUID> answersMap = new HashMap<>(group.getUsersAnswers());
+            answersMap.remove(user.getId());
+            group.setUsersAnswers(answersMap);
+        }
 
-        if (group.getMembers().size() == 1) {
+
+        if (group.getMembers().size() == 1 || group.getOwnerId().equals(user.getId())) {
+            group.getMembers().forEach(m -> m.setCurrentGroup(null));
+            _userRepository.flush();
             _groupRepository.delete(group);
         }
 
-        _groupRepository.flush();
         _userRepository.flush();
+        _groupRepository.flush();
 
         _connectionService.sendMessageToGroup(group.getId(),
                 PlayerLeftMessage

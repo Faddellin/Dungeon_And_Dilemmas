@@ -11,6 +11,7 @@ public interface GroupMapper {
     GroupMapper INSTANCE = Mappers.getMapper(GroupMapper.class);
 
     @Mapping(target = "members", source = "members")
+    @Mapping(target = "usersReady", source = "usersReady")
     @Mapping(target = "selectedQuizId", source = "quiz.id")
     @Mapping(target = "ownerId", source = "ownerId")
     GroupModel groupToGroupModel(ChatGroup group);

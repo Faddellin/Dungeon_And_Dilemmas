@@ -20,6 +20,7 @@ import org.DAD.application.service.QuizService;
 import org.DAD.domain.entity.Answer.Answer;
 import org.DAD.domain.entity.Question.ChoiceQuestion;
 import org.DAD.domain.entity.Question.Question;
+import org.DAD.domain.entity.Question.QuestionType;
 import org.DAD.domain.entity.Quiz.Quiz;
 import org.DAD.domain.entity.Quiz.QuizDifficulty;
 import org.DAD.domain.entity.Quiz.QuizStatus;
@@ -70,7 +71,7 @@ public class QuizServiceImpl implements QuizService {
 
         Quiz quiz = QuizMapper.INSTANCE.quizCreateModelToQuiz(
                 quizCreateModel,
-                QuizDifficulty.Unknown,
+                quizCreateModel.getQuizDifficulty(),
                 QuizStatus.Draft,user
         );
 
@@ -78,6 +79,66 @@ public class QuizServiceImpl implements QuizService {
         _quizRepository.flush();
 
         return quiz.getId();
+    }
+
+    public void publishQuiz(UUID userId, UUID quizId) throws ExceptionWrapper{
+        Optional<User> userO = _userRepository.findById(userId);
+        Optional<Quiz> quizO = _quizRepository.findById(quizId);
+
+        {
+            ExceptionWrapper entityNotFoundException = new ExceptionWrapper(new EntityNotFoundException());
+
+            if(userO.isEmpty()){
+                entityNotFoundException.addError("User", "User is not exists");
+            }
+            if(quizO.isEmpty()){
+                entityNotFoundException.addError("Quiz", "Quiz is not exists");
+            }
+            if(entityNotFoundException.hasErrors()){
+                throw entityNotFoundException;
+            }
+        }
+
+        User user = userO.get();
+        Quiz quiz = quizO.get();
+
+        {
+            if (!quiz.getCreator().equals(user)) {
+                ExceptionWrapper accessDeniedException = new ExceptionWrapper(new AccessDeniedException(""));
+                accessDeniedException.addError("Access", "You do not have permission to publish this quiz");
+                throw accessDeniedException;
+            }
+            if (quiz.getStatus().equals(QuizStatus.Published)) {
+                ExceptionWrapper badRequestException = new ExceptionWrapper(new BadRequestException());
+                badRequestException.addError("Quiz", "Quiz is already published");
+                throw badRequestException;
+            }
+        }
+
+        for(Question question : quiz.getQuestions()){
+            if(question.getQuestionType() == QuestionType.choice){
+                ChoiceQuestion choiceQuestion = (ChoiceQuestion) question;
+                ExceptionWrapper badRequestException = new ExceptionWrapper(new BadRequestException());
+                if(choiceQuestion.getAnswers().size() < 4){
+                    badRequestException.addError("Question", "Question " + choiceQuestion.getQuestionNumber() + " doesn't have enough answers");
+                }
+                if(choiceQuestion.getRightAnswerId() == null){
+                    badRequestException.addError("Question", "Question " + choiceQuestion.getQuestionNumber() + " doesn't have right answer");
+                }
+                if(badRequestException.hasErrors()){
+                    throw badRequestException;
+                }
+            }
+        }
+
+        if(quiz.getQuestions().isEmpty()){
+            ExceptionWrapper badRequestException = new ExceptionWrapper(new BadRequestException());
+            badRequestException.addError("Quiz", "You can't publish this quiz because it is empty");
+            throw badRequestException;
+        }
+
+        quiz.setStatus(QuizStatus.Published);
+        _quizRepository.flush();
     }
 
     @Transactional
@@ -159,7 +220,6 @@ public class QuizServiceImpl implements QuizService {
         User user = userO.get();
         Quiz quiz = quizO.get();
 
-        // Проверяем, что пользователь является владельцем квиза
         if (!quiz.getCreator().equals(user)) {
             ExceptionWrapper accessDeniedException = new ExceptionWrapper(new AccessDeniedException(""));
             accessDeniedException.addError("Access", "You do not have permission to view detailed information of this quiz");
@@ -167,14 +227,12 @@ public class QuizServiceImpl implements QuizService {
         }
 
         QuizDetailModel quizDetailModel = QuizMapper.INSTANCE.quizToQuizDetailModel(quiz);
-        
-        // Ручной маппинг вопросов с ответами
+
         if (quiz.getQuestions() != null) {
             List<QuestionModel> questionModels = quiz.getQuestions().stream()
                     .map(question -> {
                         QuestionModel questionModel = QuestionMapper.INSTANCE.questionToQuestionModel(question);
-                        
-                        // Для ChoiceQuestion маппим ответы
+
                         if (question instanceof ChoiceQuestion choiceQuestion && choiceQuestion.getAnswers() != null) {
                             questionModel.setAnswers(
                                 choiceQuestion.getAnswers().stream()
@@ -243,6 +301,11 @@ public class QuizServiceImpl implements QuizService {
                 accessDeniedException.addError("Access", "You do not have permission to create question for this quiz");
                 throw accessDeniedException;
             }
+            if (quiz.getStatus().equals(QuizStatus.Published)) {
+                ExceptionWrapper badRequestException = new ExceptionWrapper(new BadRequestException(""));
+                badRequestException.addError("Quiz", "You can't add questions to published quiz");
+                throw badRequestException;
+            }
         }
 
         int questionNumber = quiz.getQuestions() != null ? quiz.getQuestions().size() + 1 : 1;
@@ -290,6 +353,11 @@ public class QuizServiceImpl implements QuizService {
                 ExceptionWrapper accessDeniedException = new ExceptionWrapper(new AccessDeniedException(""));
                 accessDeniedException.addError("Access", "You do not have permission to delete this question");
                 throw accessDeniedException;
+            }
+            if (quiz.getStatus().equals(QuizStatus.Published)) {
+                ExceptionWrapper badRequestException = new ExceptionWrapper(new BadRequestException(""));
+                badRequestException.addError("Quiz", "You can't add questions to published quiz");
+                throw badRequestException;
             }
         }
 
@@ -347,6 +415,11 @@ public class QuizServiceImpl implements QuizService {
                 accessDeniedException.addError("Access", "You do not have permission to create answer for this question");
                 throw accessDeniedException;
             }
+            if (question.getQuiz().getStatus().equals(QuizStatus.Published)) {
+                ExceptionWrapper badRequestException = new ExceptionWrapper(new BadRequestException(""));
+                badRequestException.addError("Quiz", "You can't add answers to published quiz");
+                throw badRequestException;
+            }
         }
 
         Answer answer = switch (question.getQuestionType()){
@@ -390,6 +463,19 @@ public class QuizServiceImpl implements QuizService {
                 ExceptionWrapper accessDeniedException = new ExceptionWrapper(new AccessDeniedException(""));
                 accessDeniedException.addError("Access", "You do not have permission to set right answer for this question");
                 throw accessDeniedException;
+            }
+            if (question.getQuiz().getStatus().equals(QuizStatus.Published)) {
+                ExceptionWrapper badRequestException = new ExceptionWrapper(new BadRequestException(""));
+                badRequestException.addError("Quiz", "You can't set correct answers to published quiz");
+                throw badRequestException;
+            }
+            if(question.getQuestionType() == QuestionType.choice){
+                ChoiceQuestion choiceQuestion = (ChoiceQuestion) question;
+                if(!choiceQuestion.getAnswers().stream().map(a -> a.getId()).toList().contains(answerId)){
+                    ExceptionWrapper badRequestException = new ExceptionWrapper(new BadRequestException(""));
+                    badRequestException.addError("Quiz", "You can't set correct answer that don't exists in this question");
+                    throw badRequestException;
+                }
             }
         }
 
@@ -451,6 +537,11 @@ public class QuizServiceImpl implements QuizService {
                 ExceptionWrapper accessDeniedException = new ExceptionWrapper(new AccessDeniedException(""));
                 accessDeniedException.addError("Access", "You do not have permission to delete this answer");
                 throw accessDeniedException;
+            }
+            if (answer.getQuestion().getQuiz().getStatus().equals(QuizStatus.Published)) {
+                ExceptionWrapper badRequestException = new ExceptionWrapper(new BadRequestException(""));
+                badRequestException.addError("Quiz", "You can't delete answers from published quiz");
+                throw badRequestException;
             }
         }
 

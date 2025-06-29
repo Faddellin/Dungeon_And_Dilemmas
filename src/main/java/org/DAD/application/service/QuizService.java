@@ -14,6 +14,8 @@ import java.util.UUID;
 public interface QuizService {
     UUID createQuiz(UUID userId, QuizCreateModel quizCreateModel) throws ExceptionWrapper;
 
+    void publishQuiz(UUID userId, UUID quizId) throws ExceptionWrapper;
+
     void deleteQuiz(UUID userId, UUID quizId) throws ExceptionWrapper;
 
     QuizModel getQuizById(UUID quizId) throws ExceptionWrapper;

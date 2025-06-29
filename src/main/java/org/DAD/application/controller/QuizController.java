@@ -58,6 +58,35 @@ public class QuizController {
         return _quizService.createQuiz(authentication.getId(),quizCreateModel);
     }
 
+    @PostMapping(path = "quizzes/{quizId}")
+    @SecurityRequirement(name = "JWT")
+    @Operation(summary = "Publish quiz")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "Quiz has been published"
+            ),
+            @ApiResponse(responseCode = "400",
+                    description = "Bad request",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ResponseModel.class)
+                    )}
+            ),
+            @ApiResponse(responseCode = "401",
+                    description = "Unauthorized",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ResponseModel.class)
+                    )}
+            )
+    })
+    public void PublishQuiz(
+            @PathVariable UUID quizId
+    ) throws ExceptionWrapper {
+        JwtAuthentication authentication = (JwtAuthentication)SecurityContextHolder.getContext().getAuthentication();
+        _quizService.publishQuiz(authentication.getId(), quizId);
+    }
+
     @DeleteMapping(path = "quizzes/{quizId}")
     @SecurityRequirement(name = "JWT")
     @Operation(summary = "Delete quiz")

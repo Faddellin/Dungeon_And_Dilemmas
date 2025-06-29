@@ -4,26 +4,31 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.DAD.application.handler.ExceptionWrapper;
+import org.DAD.application.model.Answer.AnswerModel;
+import org.DAD.application.model.Connection.FromBack.GameEndedMessage;
+import org.DAD.application.model.Connection.FromBack.GameStartedMessage;
 import org.DAD.application.model.Connection.FromBack.QuestionMessage;
 import org.DAD.application.model.Question.QuestionModel;
 import org.DAD.application.repository.GroupRepository;
 import org.DAD.application.repository.QuestionRepository;
+import org.DAD.application.repository.ResultRepository;
+import org.DAD.application.repository.UserRepository;
 import org.DAD.application.service.ConnectionService;
 import org.DAD.application.service.GameAnsweringService;
 import org.DAD.application.service.UserService;
 import org.DAD.domain.entity.Answer.TextAnswer;
 import org.DAD.domain.entity.Group.ChatGroup;
+import org.DAD.domain.entity.Group.GroupStatus;
 import org.DAD.domain.entity.Question.ChoiceQuestion;
 import org.DAD.domain.entity.Question.Question;
-import org.DAD.domain.mapper.QuestionMapper;
-import org.apache.catalina.Group;
-import org.hibernate.Hibernate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.DAD.domain.entity.Result.Result;
+import org.DAD.domain.entity.User.User;
+import org.DAD.domain.mapper.AnswerMapper;
 
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
+import java.util.stream.DoubleStream;
 
 public class GameSession {
     private UUID groupId;
@@ -42,10 +47,8 @@ public class GameSession {
                        ConnectionService connectionService,
                        GameAnsweringService gameAnsweringService,
                        QuestionRepository questionRepository,
-                       UserRepository userRepository) {
-    public GameSession(UUID groupId, GroupRepository groupRepository, ConnectionService connectionService,
-                      GameAnsweringService gameAnsweringService, QuestionRepository questionRepository,
-                      ResultRepository resultRepository) {
+                       UserRepository userRepository,
+                       ResultRepository resultRepository) {
         this.groupId = groupId;
         this._connectionService = connectionService;
         this._gameAnsweringService = gameAnsweringService;
@@ -133,29 +136,26 @@ public class GameSession {
             questionModel.setQuestionNumber(questionO.get().getQuestionNumber());
 
             ChoiceQuestion question = (ChoiceQuestion)questionO.get();
-            List<AnswerModel> answerModels = question.getAnswers().stream().map(a -> (AnswerModel)AnswerMapper.INSTANCE.textAnswerToTextAnswerModel((TextAnswer) a)).toList();
+            List<AnswerModel> answerModels = question.getAnswers().stream().map(a -> (AnswerModel) AnswerMapper.INSTANCE.textAnswerToTextAnswerModel((TextAnswer) a)).toList();
             questionModel.setAnswers(answerModels);
             return questionModel;
         }
     }
 
-    private Boolean checkAllPlayersReady() {
+    private Boolean checkGameCanBeStarted() {
         ChatGroup group = _groupRepository.findById(groupId).get();
         Map<UUID, Boolean> playersReady = group.getUsersReady();
-
         for(var playerReady : playersReady.values()) {
             if (!playerReady) {
                 return false;
             }
         }
-
         if(group.getQuiz() == null){
             return false;
         }
-
-        //if(group.ge){
-//
-        //}
+        if(group.getGroupStatus() == GroupStatus.playing){
+            return false;
+        }
 
         return true;
     }
@@ -166,6 +166,8 @@ public class GameSession {
                 ChatGroup group = _groupRepository.findById(groupId).get();
                 List<String> playerIds = _userRepository.findByCurrentGroup(group).stream().map(m -> m.getId().toString()).toList();
                 _connectionService.sendMessageToGroup(groupId, GameStartedMessage.builder().playerIds(playerIds).build());
+                group.setGroupStatus(GroupStatus.playing);
+                _groupRepository.save(group);
                 try {
                     Thread.sleep(2000);
                 } catch (InterruptedException e) {
@@ -181,7 +183,24 @@ public class GameSession {
     public void endGame() {
         saveResultsToDatabase();
 
-        _connectionService.sendMessageToGroup(groupId, GameEndedMessage.builder().scores(_playersScores).build());
+        Map<String, Integer> nameScoreMap = new HashMap<>();
+        List<User> members = _groupRepository.findById(groupId).get().getMembers();
+        for(User member: members) {
+            nameScoreMap.put(member.getUserName(), _playersScores.getOrDefault(member.getId(),0));
+        }
+
+        ChatGroup group = _groupRepository.findById(groupId).get();
+        group.setQuiz(null);
+        group.setGroupStatus(GroupStatus.menu);
+        group.setCurrentQuestion(null);
+        group.setUsersAnswers(null);
+        Map<UUID,Boolean> playersReady =  group.getUsersReady();
+        for(UUID playerId: playersReady.keySet()) {
+            playersReady.put(playerId, false);
+        }
+        _groupRepository.save(group);
+
+        _connectionService.sendMessageToGroup(groupId, GameEndedMessage.builder().scores(nameScoreMap).build());
     }
 
     @Transactional

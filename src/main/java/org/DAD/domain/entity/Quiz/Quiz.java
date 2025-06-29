@@ -33,7 +33,7 @@ public class Quiz {
     @Enumerated(EnumType.STRING)
     private QuizStatus status;
 
-    @OneToMany(mappedBy = "quiz")
+    @OneToMany(mappedBy = "quiz", fetch = FetchType.EAGER)
     private List<Question> questions;
 
     @ManyToOne

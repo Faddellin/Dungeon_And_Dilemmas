@@ -13,5 +13,5 @@ import java.util.UUID;
 @NoArgsConstructor @AllArgsConstructor
 @Builder
 public class GameEndedMessage extends MessageWrapper {
-    private Map<UUID, Integer> scores;
+    private Map<String, Integer> scores;
 }

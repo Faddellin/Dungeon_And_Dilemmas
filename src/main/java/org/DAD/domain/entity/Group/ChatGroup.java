@@ -30,7 +30,7 @@ public class ChatGroup {
     @Column(unique = true)
     private String code;
 
-    @OneToMany(mappedBy = "currentGroup")
+    @OneToMany(mappedBy = "currentGroup", fetch = FetchType.EAGER)
     @Size(min = 1, max = 4)
     private List<User> members;
 
@@ -45,6 +45,10 @@ public class ChatGroup {
 
     @JdbcTypeCode(SqlTypes.JSON)
     private Map<UUID, Boolean> usersReady;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private GroupStatus groupStatus;
 
     @ManyToOne
     @JoinColumn(name = "quiz_id")

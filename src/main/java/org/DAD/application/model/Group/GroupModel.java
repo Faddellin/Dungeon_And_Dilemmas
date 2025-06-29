@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.DAD.application.model.User.UserShortModel;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -25,6 +26,9 @@ public class GroupModel {
 
     @Size(min = 1, max = 4)
     private List<UserShortModel> members;
+
+    @NotNull
+    private Map<UUID, Boolean> usersReady;
 
     private UUID selectedQuizId;
 }

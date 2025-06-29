@@ -27,7 +27,7 @@ public class QuizRepositoryImpl
 
     public List<Quiz> findByFilters(QuizFiltersModel quizFiltersModel) {
 
-        Specification<Quiz> spec = (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();;
+        Specification<Quiz> spec = (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();
 
         if(quizFiltersModel.getTitle() != null) {
             spec = spec.and(QuizSpecification.addContainsSpec(quizFiltersModel.getTitle(), "title"));
@@ -41,6 +41,7 @@ public class QuizRepositoryImpl
         if(quizFiltersModel.getCreatorEmail() != null) {
             spec = spec.and(QuizSpecification.addUserContainsSpec(quizFiltersModel.getCreatorEmail(), "email"));
         }
+        spec = spec.and(QuizSpecification.addEqualSpec("Published", "status"));
 
         return this.findAll(spec,
                 (quizFiltersModel.getPage() - 1) * quizFiltersModel.getPageSize(),

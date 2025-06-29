@@ -91,10 +91,6 @@ public class GameAnsweringServiceImpl implements GameAnsweringService {
         );
         
         groupRepository.save(group);
-
-        if (group.getUsersAnswers().size() == group.getMembers().size()) {
-            sendAnswerResults(groupId);
-        }
     }
 
     @Override
