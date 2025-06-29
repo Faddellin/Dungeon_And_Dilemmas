@@ -17,6 +17,7 @@ import org.DAD.application.service.QuizService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -206,6 +207,33 @@ public class QuizController {
             @ModelAttribute @Valid QuizFiltersModel quizFiltersModel
     ) throws ExceptionWrapper {
         return _quizService.getQuizzesByFilters(quizFiltersModel);
+    }
+
+    @GetMapping(path = "quizzes/user")
+    @SecurityRequirement(name = "JWT")
+    @Operation(summary = "Get user quizzes")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200",
+                    description = "User quizzes retrieved"
+            ),
+            @ApiResponse(responseCode = "400",
+                    description = "Bad request",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ResponseModel.class)
+                    )}
+            ),
+            @ApiResponse(responseCode = "401",
+                    description = "Unauthorized",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ResponseModel.class)
+                    )}
+            )
+    })
+    public List<QuizModel> GetUserQuizzes() throws ExceptionWrapper {
+        JwtAuthentication authentication = (JwtAuthentication)SecurityContextHolder.getContext().getAuthentication();
+        return _quizService.getUserQuizzes(authentication.getId());
     }
 
     @PostMapping(path = "quizzes/{quizId}/questions")

@@ -9,6 +9,7 @@ import org.DAD.application.model.Quiz.QuizFiltersModel;
 import org.DAD.application.model.Quiz.QuizModel;
 import org.DAD.application.model.Quiz.QuizPagedListModel;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface QuizService {
@@ -23,6 +24,7 @@ public interface QuizService {
     QuizDetailModel getQuizDetailById(UUID userId, UUID quizId) throws ExceptionWrapper;
 
     QuizPagedListModel getQuizzesByFilters(QuizFiltersModel quizFiltersModel) throws ExceptionWrapper;
+    List<QuizModel> getUserQuizzes(UUID userId) throws ExceptionWrapper;
 
     UUID createQuestion(UUID userId, UUID quizId, QuestionCreateModel questionCreateModel) throws ExceptionWrapper;
 

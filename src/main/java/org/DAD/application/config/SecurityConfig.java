@@ -60,8 +60,6 @@ public class SecurityConfig {
                                        "/api/v1/auth/refresh-token",
                                        "/v3/api-docs/**",
                                        "/swagger-ui/**",
-                                       "/api/v1/quizzes/",
-                                       "/api/v1/quizzes/**",
                                        "/ws/**").permitAll()
                         .anyRequest().authenticated()
                 )

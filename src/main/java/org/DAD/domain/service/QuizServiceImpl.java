@@ -273,6 +273,15 @@ public class QuizServiceImpl implements QuizService {
         return new QuizPagedListModel(quizModels, paginationModel);
     }
 
+    public List<QuizModel> getUserQuizzes(UUID userId) throws ExceptionWrapper{
+        List<QuizModel> quizModels = _quizRepository.findByCreatorId(userId)
+                .stream()
+                .map(QuizMapper.INSTANCE::quizToQuizModel)
+                .toList();
+
+        return quizModels;
+    }
+
     @Transactional
     public UUID createQuestion(UUID userId, UUID quizId, QuestionCreateModel questionCreateModel) throws ExceptionWrapper{
         Optional<User> userO = _userRepository.findById(userId);

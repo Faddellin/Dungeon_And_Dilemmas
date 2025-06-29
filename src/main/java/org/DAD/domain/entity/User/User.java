@@ -2,6 +2,7 @@ package org.DAD.domain.entity.User;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.Getter;
@@ -30,6 +31,7 @@ public class User {
     public UserRole role;
     @NotNull
     public String userName;
+    @Column(length = 400)
     public String refreshToken;
     public Date refreshTokenExpiryDate;
     @NotNull

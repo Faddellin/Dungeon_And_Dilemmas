@@ -9,6 +9,7 @@ import java.util.UUID;
 
 public interface QuizRepository
         extends BaseRepository<Quiz, UUID> {
+    List<Quiz> findByCreatorId(UUID creatorId);
     List<Quiz> findByFilters(QuizFiltersModel quizFiltersModel);
     Integer getCountByFilters(QuizFiltersModel quizFiltersModel);
 }
